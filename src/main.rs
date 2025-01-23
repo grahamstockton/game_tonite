@@ -1,4 +1,7 @@
 #[cfg(feature = "ssr")]
+const DB_URL: &str = "sqlite://session.db";
+
+#[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     use std::sync::Arc;
@@ -7,11 +10,10 @@ async fn main() {
     use leptos::logging::log;
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use gaming_calendar_website::app::*;
+    use gaming_calendar_website::{app::*, dao::sqlite_util::SqliteClient};
     use gaming_calendar_website::dao::igdb_client::IgdbClient;
-    use gaming_calendar_website::dao::sqlite_util::TestStruct;
     use dotenv::dotenv;
-    use sqlx::SqlitePool;
+    use sqlx::{migrate::MigrateDatabase as _, Sqlite, SqlitePool};
 
     // load env vars
     dotenv().ok();
@@ -27,15 +29,8 @@ async fn main() {
 
     igdb.get_games().await;*/
 
-    // load sqlite client
-    // TODO: sort out how to get OpenSSL working for this
-    let db = SqlitePool::connect("sqlite://session.db").await.unwrap();
-    let result = sqlx::query("CREATE TABLE IF NOT EXISTS tests (id VARCHAR(250) PRIMARY KEY NOT NULL, val INTEGER NOT NULL);").execute(&db).await.unwrap();
-    println!("Create user table result: {:?}", result); 
-    let result = sqlx::query("INSERT INTO tests (name, val) VALUES (?, ?)").bind("harry").bind(20).execute(&db).await.unwrap();
-    println!("Insert result: {:?}", result);
-    let result = sqlx::query_as::<_, TestStruct>("SELECT id, name FROM users").fetch_all().await.unwrap();
-    println!("Select result: {:?}", result);
+    // load sql client
+    let sql = SqliteClient::new(DB_URL);
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;

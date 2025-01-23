@@ -27,7 +27,7 @@ reqwest = { version = "0.12.2", features = ["json"] }
 dotenv = "0.15.0"
 cfg-if = "1.0.0"
 anyhow = "1.0.95"
-sqlx = { version = "0.8.3", features = ["runtime-tokio-native-tls", "sqlite"]}
+sqlx = { version = "0.8.3", features = ["runtime-tokio-native-tls", "sqlite"], optional = true }
 
 [features]
 hydrate = ["leptos/hydrate"]
@@ -40,6 +40,7 @@ ssr = [
     "leptos/ssr",
     "leptos_meta/ssr",
     "leptos_router/ssr",
+    "dep:sqlx",
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode

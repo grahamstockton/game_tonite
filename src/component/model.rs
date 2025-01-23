@@ -1,9 +1,4 @@
-use std:;time::Instant;
-
-pub struct CalendarEvent {
-    start_time: Instant,
-    end_time: Instant,
-}
+use tokio::time::Instant;
 
 pub struct User {
     name: String,
@@ -11,10 +6,11 @@ pub struct User {
 }
 
 pub struct GamingSession {
-    calendar_event: CalendarEvent,
+    server_id: String,
+    session_id: String,
+    start_time: Instant,
     owner: User,
     other_participants: Vec<User>,
-    selected_game: Option<Game>, // todo: fill game in here
+    selected_games: Vec<Game>, // todo: fill game in here
     suggested_games: Vec<Game>,
-
 }
