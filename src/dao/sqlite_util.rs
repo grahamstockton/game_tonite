@@ -1,8 +1,11 @@
+use chrono::Utc;
+
 cfg_if::cfg_if! {
     if #[cfg(feature = "ssr")] {
         use anyhow::Result;
         use sqlx::prelude::FromRow;
         use sqlx::{Pool, Sqlite, SqlitePool};
+        use chrono::DateTime;
     }
 }
 
@@ -65,6 +68,16 @@ impl SqliteClient {
     pub async fn get_sessions(&self, server_id: i64) -> Result<Vec<SessionRecord>> {
         Ok(
             sqlx::query_as!(SessionRecord, "SELECT * FROM sessions WHERE server_id=?", server_id)
+                .fetch_all(&self.client).await?
+        )
+    }
+
+    // session table -- read, only for one day
+    pub async fn get_sessions_starting_in_range(&self, server_id: i64, start_time: DateTime<Utc>, end_time: DateTime<Utc>) -> Result<Vec<SessionRecord>> {
+        let start = start_time.to_rfc3339();
+        let end = end_time.to_rfc3339();
+        Ok(
+            sqlx::query_as!(SessionRecord, "SELECT * FROM sessions WHERE server_id=? AND start_time BETWEEN ? AND ?", server_id, start, end)
                 .fetch_all(&self.client).await?
         )
     }
