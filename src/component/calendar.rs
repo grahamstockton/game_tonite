@@ -44,6 +44,7 @@ pub fn Calendar() -> impl IntoView {
     // Update time every 30s
     let _ = use_interval_fn(
         move || {
+            set_time(get_local_time());
             set_timebar_bottom(calculate_timebar_bottom(time(), STARTING_HOUR_OFFSET));
         },
         30000,
@@ -52,7 +53,7 @@ pub fn Calendar() -> impl IntoView {
     view! {
         <div node_ref=e class="relative flex flex-col h-dvh w-dvw bg-slate-950 overflow-y-scroll">
             <div node_ref=e2 class="relative flex-shrink-0">
-                // background layer
+                // background -- hour grid
                 {
                     (0..24).map(|h| {
                         let v = (h + STARTING_HOUR_OFFSET) % 24;
@@ -64,8 +65,8 @@ pub fn Calendar() -> impl IntoView {
                         }
                     }).collect_view()
                 }
-                // foreground layer
-                // current time indicator overlay
+                // foreground layer -- event components
+                // overlay -- current time indicator
                 <div class="absolute w-full flex-shrink-0" style={move || format!("bottom: {}%;", timebar_bottom()) }>
                     <p class="text-sm pr-2 text-right z-2 text-fuchsia-700">{ move || format!("{}", time().format("%H:%M")) }</p>
                     <hr class="border z-2 w-full border-fuchsia-700"/>
