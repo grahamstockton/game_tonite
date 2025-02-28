@@ -1,5 +1,5 @@
 use chrono::{DateTime, FixedOffset, TimeZone, Timelike, Utc};
-use leptos::{html::Div, logging::log, prelude::*};
+use leptos::{html::Div, prelude::*};
 use leptos_use::{use_element_size, use_interval_fn, use_scroll, use_window_size, UseElementSizeReturn, UseScrollReturn, UseWindowSizeReturn};
 
 #[component]
@@ -83,7 +83,7 @@ fn calculate_timebar_bottom(t: DateTime<FixedOffset>, offset: usize) -> f64 {
     if nsfm < offset_secs {
         100. * (offset_secs - nsfm) / 86400.
     } else {
-        100. * (1. - nsfm / 86400. - offset_secs / 24.)
+        100. * (1. - (nsfm - offset_secs) / 86400.)
     }
 }
 
