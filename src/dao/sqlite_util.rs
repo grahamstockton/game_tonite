@@ -12,30 +12,30 @@ cfg_if::cfg_if! {
 #[cfg(feature = "ssr")]
 #[derive(Clone, FromRow, Debug)]
 pub struct SessionRecord {
-    session_id: i64,
-    server_id: i64,
-    start_time: String,
-    end_time: String,
-    owner: String,
-    is_selected: bool,
+    pub session_id: i64,
+    pub server_id: i64,
+    pub start_time: String,
+    pub end_time: String,
+    pub owner: String,
+    pub is_selected: bool,
 }
 
 #[cfg(feature = "ssr")]
 #[derive(Clone, FromRow, Debug)]
 pub struct UserRecord {
-    session_id: i64,
-    user_id: String,
-    user_photo: String,
+    pub session_id: i64,
+    pub user_id: String,
+    pub user_photo: String,
 }
 
 #[cfg(feature = "ssr")]
 #[derive(Clone, FromRow, Debug)]
 pub struct GamePreferenceRecord {
-    id: i64,
-    user_id: String,
-    session_id: i64,
-    suggested_game: String,
-    is_selected: bool,
+    pub id: i64,
+    pub user_id: String,
+    pub session_id: i64,
+    pub suggested_game: String,
+    pub is_selected: bool,
 }
 
 #[cfg(feature = "ssr")]

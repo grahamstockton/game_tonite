@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     pub name: String,
     pub picture: String, // TODO: put picture here,
@@ -15,13 +17,14 @@ impl User {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct GamingSession {
-    server_id: String,
-    session_id: String,
-    start_time: chrono::DateTime<Utc>,
-    end_time: chrono:: DateTime<Utc>,
-    owner: User,
-    other_participants: Vec<User>,
+    pub server_id: i64,
+    pub session_id: i64,
+    pub start_time: chrono::DateTime<Utc>,
+    pub end_time: chrono:: DateTime<Utc>,
+    pub owner: User,
+    pub other_participants: Vec<User>,
     //selected_games: Vec<Game>, // todo: fill game in here
     //suggested_games: Vec<Game>,
 }

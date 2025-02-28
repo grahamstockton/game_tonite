@@ -2,6 +2,8 @@ use chrono::{DateTime, FixedOffset, TimeZone, Timelike, Utc};
 use leptos::{html::Div, prelude::*};
 use leptos_use::{use_element_size, use_interval_fn, use_scroll, use_window_size, UseElementSizeReturn, UseScrollReturn, UseWindowSizeReturn};
 
+use super::model::{GamingSession, User};
+
 #[component]
 pub fn Calendar() -> impl IntoView {
     // some constants to do with displaying calendar
@@ -66,6 +68,7 @@ pub fn Calendar() -> impl IntoView {
                     }).collect_view()
                 }
                 // foreground layer -- event components
+
                 // overlay -- current time indicator
                 <div class="absolute w-full flex-shrink-0" style={move || format!("bottom: {}%;", timebar_bottom()) }>
                     <p class="text-sm pr-2 text-right z-2 text-fuchsia-700">{ move || format!("{}", time().format("%H:%M")) }</p>
@@ -94,4 +97,25 @@ fn get_local_time() -> DateTime<FixedOffset> {
     let offset = FixedOffset::west_opt((mins_offset * 60.) as i32).unwrap();
     
     offset.from_utc_datetime(&Utc::now().naive_utc())
-} 
+}
+
+#[server]
+pub async fn get_events() -> Result<Vec<GamingSession>, ServerFnError> {
+    use crate::dao::sqlite_util::SqliteClient;
+    
+    // TODO: test this, then use extractors to share an sqlite client across instances
+    let client = SqliteClient::new("sessions.db").await;
+    Ok(client.get_sessions(11111111111).await.unwrap().iter().map(|r|
+        GamingSession {
+            server_id: r.server_id,
+            session_id: r.session_id,
+            start_time: DateTime::parse_from_rfc3339(&r.start_time).unwrap().to_utc(),
+            end_time: DateTime::parse_from_rfc3339(&r.end_time).unwrap().to_utc(),
+            owner: User {
+                name: r.owner.clone(),
+                picture: "placeholder".to_string(),
+            },
+            other_participants: vec![],
+        }
+    ).collect())
+}
