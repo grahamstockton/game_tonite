@@ -1,7 +1,7 @@
+use crate::model::Game;
+use serde_json;
 use std::{collections::HashMap, fs, sync::Arc};
 use trie_rs::Trie;
-use serde_json;
-use crate::model::Game;
 
 /// Class for loading game related data and returning Arc references to games
 pub struct GameLoader {

@@ -1,4 +1,7 @@
-use leptos::{html::{div, img, p}, prelude::*};
+use leptos::{
+    html::{div, img, p},
+    prelude::*,
+};
 
 #[component]
 pub fn UserProfileDisplay(username: String, profile_url: String) -> impl IntoView {

@@ -1,19 +1,16 @@
 #[cfg(feature = "ssr")]
-const DB_URL: &str = "sqlite://session.db";
+const DB_URL: &str = "sqlite://sessions.db";
 
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use std::sync::Arc;
-
     use axum::Router;
+    use chrono::Utc;
+    use dotenv::dotenv;
+    use gaming_calendar_website::{app::*, dao::sqlite_util::SqliteClient};
     use leptos::logging::log;
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use gaming_calendar_website::{app::*, dao::sqlite_util::SqliteClient};
-    use gaming_calendar_website::dao::igdb_client::IgdbClient;
-    use dotenv::dotenv;
-    use sqlx::{migrate::MigrateDatabase as _, Sqlite, SqlitePool};
 
     // load env vars
     dotenv().ok();
@@ -29,8 +26,22 @@ async fn main() {
 
     igdb.get_games().await;*/
 
+    let client = SqliteClient::new(DB_URL).await;
+
+    //let _ = client.create_session_user("graham", 0, "photo_url").await.expect("failed to create graham");
+    //let _ = client.create_session_user("bob", 0, "photo_url2").await.expect("failed  to create bob");
+
+    let users = client
+        .get_session_users(0)
+        .await
+        .expect("failed to get users");
+    log!("initial users: {:?}", users);
+
+    let sessions = client.get_sessions("PLACEHOLDER").await.unwrap();
+    log!("initial sessions {:?}", sessions);
+
     // load sql client
-    let sql = SqliteClient::new(DB_URL);
+    //let sql = SqliteClient::new(DB_URL);
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;

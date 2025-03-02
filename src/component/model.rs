@@ -1,7 +1,10 @@
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[cfg(feature = "ssr")]
+use crate::dao::sqlite_util::UserRecord;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct User {
     pub name: String,
     pub picture: String, // TODO: put picture here,
@@ -17,14 +20,25 @@ impl User {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[cfg(feature = "ssr")]
+impl From<&UserRecord> for User {
+    fn from(record: &UserRecord) -> Self {
+        Self {
+            name: record.user_id.clone(),
+            picture: record.user_photo.clone(),
+        }
+    }
+}
+
+#[derive(Clone, Serialize, Debug, Deserialize)]
 pub struct GamingSession {
-    pub server_id: i64,
+    pub server_id: String,
     pub session_id: i64,
+    pub title: String,
     pub start_time: chrono::DateTime<Utc>,
-    pub end_time: chrono:: DateTime<Utc>,
+    pub end_time: chrono::DateTime<Utc>,
     pub owner: User,
-    pub other_participants: Vec<User>,
+    pub participants: Vec<User>,
     //selected_games: Vec<Game>, // todo: fill game in here
     //suggested_games: Vec<Game>,
 }

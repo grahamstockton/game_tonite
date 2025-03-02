@@ -15,4 +15,4 @@ Cargo.lock
 .env
 
 
-sessions.db
+sessions.db*

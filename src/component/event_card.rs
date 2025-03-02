@@ -1,11 +1,15 @@
 use std::sync::Arc;
 
-use leptos::{html::{div, h1, img, p}, prelude::*};
+use leptos::{
+    html::{div, h1, img, p},
+    prelude::*,
+};
 
 use super::model::{Game, User};
 
 #[component]
-pub fn EventCard(title: String,
+pub fn EventCard(
+    title: String,
     selected_game: Option<Arc<Game>>,
     owner: Arc<User>,
     participants: Vec<Arc<User>>,
@@ -29,7 +33,7 @@ pub fn EventCard(title: String,
 
                 // owner
                 <div class="flex flex-row gap-1">
-                    <img 
+                    <img
                         src={ owner.get_picture() }
                         alt={format!("{}'s profile picture", owner.get_name())}
                         class="size-8 shrink-0 rounded-full"
@@ -45,7 +49,7 @@ pub fn EventCard(title: String,
                     participants.iter()
                         .map(|p| view! {
                             <div class="flex flex-row gap-1">
-                                <img 
+                                <img
                                     src={ p.get_picture() }
                                     alt={format!("{}'s profile picture", p.get_name())}
                                     class="size-6 shrink-0 rounded-full"

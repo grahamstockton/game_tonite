@@ -1,12 +1,20 @@
 use std::sync::Arc;
 
+use crate::component::{
+    calendar::Calendar,
+    event_card::EventCard,
+    model::{Game, User},
+    user_profile_display::UserProfileDisplay,
+};
+use leptos::Params;
 use leptos::{logging::log, prelude::*};
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
-    components::{Route, Router, Routes}, hooks::{use_params, use_params_map}, params::Params, path, StaticSegment
+    components::{Route, Router, Routes},
+    hooks::{use_params, use_params_map},
+    params::Params,
+    path, StaticSegment,
 };
-use leptos::Params;
-use crate::component::{calendar::Calendar, event_card::EventCard, model::{Game, User}, user_profile_display::UserProfileDisplay};
 
 #[derive(Params, PartialEq, Debug)]
 struct SessionParams {
@@ -60,11 +68,7 @@ pub fn App() -> impl IntoView {
 #[component]
 fn HomePage() -> impl IntoView {
     let params = use_params_map();
-    let group_id = move || {
-        params.read()
-        .get("id")
-        .unwrap_or_default()
-    };
+    let group_id = move || params.read().get("id").unwrap_or_default();
 
     view! {
         <div>
@@ -93,7 +97,7 @@ fn HomePage() -> impl IntoView {
     }
 }
 
-
 fn get_url() -> String {
-    "https://wallpapers.com/images/featured/discord-profile-pictures-xk3qyllfj1j46kte.jpg".to_string()
+    "https://wallpapers.com/images/featured/discord-profile-pictures-xk3qyllfj1j46kte.jpg"
+        .to_string()
 }

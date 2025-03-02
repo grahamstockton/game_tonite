@@ -1,6 +1,14 @@
+use std::sync::Arc;
+
 use chrono::{DateTime, FixedOffset, TimeZone, Timelike, Utc};
-use leptos::{html::Div, prelude::*};
-use leptos_use::{use_element_size, use_interval_fn, use_scroll, use_window_size, UseElementSizeReturn, UseScrollReturn, UseWindowSizeReturn};
+use futures::future::join_all;
+use leptos::{html::Div, logging::log, prelude::*};
+use leptos_use::{
+    use_element_size, use_interval_fn, use_scroll, use_window_size, UseElementSizeReturn,
+    UseScrollReturn, UseWindowSizeReturn,
+};
+
+use crate::component::{event_card::EventCard, model::Game};
 
 use super::model::{GamingSession, User};
 
@@ -12,7 +20,8 @@ pub fn Calendar() -> impl IntoView {
     const SCROLL_OFFSET_PCT: f64 = 0.25;
 
     // get client side time
-    let (time, set_time) = signal::<DateTime<FixedOffset>>(DateTime::from_timestamp(0, 0).unwrap().fixed_offset());
+    let (time, set_time) =
+        signal::<DateTime<FixedOffset>>(DateTime::from_timestamp(0, 0).unwrap().fixed_offset());
     let (timebar_bottom, set_timebar_bottom) = signal(0.);
 
     // node ref for scrolling
@@ -20,7 +29,13 @@ pub fn Calendar() -> impl IntoView {
     let e2 = NodeRef::<Div>::new();
     let UseScrollReturn { set_y, .. } = use_scroll(e);
     let UseElementSizeReturn { height, .. } = use_element_size(e2);
-    let UseWindowSizeReturn { height: window_height, .. } = use_window_size();
+    let UseWindowSizeReturn {
+        height: window_height,
+        ..
+    } = use_window_size();
+
+    // get sessions
+    let async_sessions = OnceResource::new(get_events("PLACEHOLDER".to_string()));
 
     // On render (client side) update time via effect.
     // Unfortunately, `use_interval_fn_with_options` initializes before the component renders
@@ -37,7 +52,8 @@ pub fn Calendar() -> impl IntoView {
             set_timebar_bottom(tb);
 
             // set screen scroll position
-            let sy = move || (100. - tb) / 100. * h - SCROLL_OFFSET_PCT * window_height.get_untracked();
+            let sy =
+                move || (100. - tb) / 100. * h - SCROLL_OFFSET_PCT * window_height.get_untracked();
             set_y(sy());
         },
         false,
@@ -68,6 +84,42 @@ pub fn Calendar() -> impl IntoView {
                     }).collect_view()
                 }
                 // foreground layer -- event components
+                { //TODO: make this not run 3 times for every page reload
+                    move || {
+                        view! {
+                            <Suspense
+                                fallback=move || view! {}
+                            >
+                                <Show
+                                    when=move || {
+                                        match async_sessions.get() {
+                                            Some(Ok(_)) => true,
+                                            _ => false,
+                                        }
+                                    }
+                                    fallback=|| {
+                                        log!("unable to find sessions");
+                                        view! {}
+                                    }
+                                >
+                                    {
+                                        async_sessions.get().expect("error unwrapping sessions").unwrap().iter().map(|r| view! {
+                                            <div>
+                                                <EventCard
+                                                    title={r.title.clone()}
+                                                    selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))}
+                                                    owner={Arc::new(r.owner.clone())}
+                                                    participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
+                                                    suggestions={vec![]}
+                                                />
+                                            </div>
+                                        }).collect_view()
+                                    }
+                                </Show>
+                            </Suspense>
+                        }
+                    }
+                }
 
                 // overlay -- current time indicator
                 <div class="absolute w-full flex-shrink-0" style={move || format!("bottom: {}%;", timebar_bottom()) }>
@@ -95,27 +147,42 @@ fn calculate_timebar_bottom(t: DateTime<FixedOffset>, offset: usize) -> f64 {
 fn get_local_time() -> DateTime<FixedOffset> {
     let mins_offset = js_sys::Date::new_0().get_timezone_offset();
     let offset = FixedOffset::west_opt((mins_offset * 60.) as i32).unwrap();
-    
+
     offset.from_utc_datetime(&Utc::now().naive_utc())
 }
 
 #[server]
-pub async fn get_events() -> Result<Vec<GamingSession>, ServerFnError> {
+async fn get_events(server_id: String) -> Result<Vec<GamingSession>, ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
-    
     // TODO: test this, then use extractors to share an sqlite client across instances
-    let client = SqliteClient::new("sessions.db").await;
-    Ok(client.get_sessions(11111111111).await.unwrap().iter().map(|r|
-        GamingSession {
-            server_id: r.server_id,
-            session_id: r.session_id,
-            start_time: DateTime::parse_from_rfc3339(&r.start_time).unwrap().to_utc(),
-            end_time: DateTime::parse_from_rfc3339(&r.end_time).unwrap().to_utc(),
-            owner: User {
-                name: r.owner.clone(),
-                picture: "placeholder".to_string(),
-            },
-            other_participants: vec![],
-        }
-    ).collect())
+    let client = SqliteClient::new("sqlite://sessions.db").await;
+    let sessions = client.get_sessions(&server_id).await.unwrap();
+    log!("{:?}", sessions);
+
+    // TODO: make this call process faster
+    let a: Vec<_> = sessions
+        .iter()
+        .map(|s| async {
+            let participants = client.get_session_users(s.session_id).await.unwrap();
+            log!("{:?}", participants);
+            let owner_record = participants
+                .iter()
+                .find(|r| s.owner == r.user_id)
+                .expect("no owner found for session");
+
+            GamingSession {
+                server_id: s.server_id.clone(),
+                session_id: s.session_id,
+                title: s.title.clone(),
+                start_time: DateTime::parse_from_rfc3339(&s.start_time)
+                    .unwrap()
+                    .to_utc(),
+                end_time: DateTime::parse_from_rfc3339(&s.end_time).unwrap().to_utc(),
+                owner: User::from(owner_record),
+                participants: participants.iter().map(User::from).collect(),
+            }
+        })
+        .collect();
+
+    Ok(join_all(a).await)
 }

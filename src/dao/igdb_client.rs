@@ -69,7 +69,8 @@ impl AppAccessToken {
     // get token. if expired, refresh
     async fn get(mut self) -> Result<String> {
         if Instant::now() > self.expire_time {
-            let res = get_access_token(self.reqwest.clone(), &self.client_id, &self.secret_key).await?;
+            let res =
+                get_access_token(self.reqwest.clone(), &self.client_id, &self.secret_key).await?;
             self = AppAccessToken {
                 access_token: res.access_token,
                 expire_time: generate_expiry(res.expires_in),
@@ -83,8 +84,15 @@ impl AppAccessToken {
 
 // make the api call to get access token
 #[cfg(feature = "ssr")]
-async fn get_access_token(reqwest: Arc<reqwest::Client>, client_id: &str, secret_key: &str) -> Result<AccessTokenResponse> {
-    let response = reqwest.post(format_access_url(&client_id, &secret_key)).send().await?;
+async fn get_access_token(
+    reqwest: Arc<reqwest::Client>,
+    client_id: &str,
+    secret_key: &str,
+) -> Result<AccessTokenResponse> {
+    let response = reqwest
+        .post(format_access_url(&client_id, &secret_key))
+        .send()
+        .await?;
     let json = response.json().await?;
     Ok(json)
 }
@@ -92,12 +100,21 @@ async fn get_access_token(reqwest: Arc<reqwest::Client>, client_id: &str, secret
 // convert remaining time to an expiration time Instant
 #[cfg(feature = "ssr")]
 fn generate_expiry(remaining: u64) -> Instant {
-    Instant::now().checked_add(Duration::from_secs(remaining)).unwrap()
+    Instant::now()
+        .checked_add(Duration::from_secs(remaining))
+        .unwrap()
 }
 
 #[cfg(feature = "ssr")]
 fn format_access_url(client_id: &str, secret_key: &str) -> String {
-    return ["https://id.twitch.tv/oauth2/token?client_id=", client_id, "&client_secret=", secret_key, "&grant_type=client_credentials"].join("");
+    return [
+        "https://id.twitch.tv/oauth2/token?client_id=",
+        client_id,
+        "&client_secret=",
+        secret_key,
+        "&grant_type=client_credentials",
+    ]
+    .join("");
 }
 
 // client for interacting with the international games database api
@@ -123,13 +140,24 @@ impl IgdbClient {
     // get a list of all games
     pub async fn get_games(&self) {
         let mut headers = HeaderMap::new();
-        headers.insert(CLIENT_HEADER, HeaderValue::from_str(self.client_id.as_str()).unwrap());
-        headers.insert(AUTHORIZATION_HEADER, HeaderValue::from_str(&[BEARER_TOKEN_PREFIX, &self.access_token.access_token].join("")).unwrap());
+        headers.insert(
+            CLIENT_HEADER,
+            HeaderValue::from_str(self.client_id.as_str()).unwrap(),
+        );
+        headers.insert(
+            AUTHORIZATION_HEADER,
+            HeaderValue::from_str(&[BEARER_TOKEN_PREFIX, &self.access_token.access_token].join(""))
+                .unwrap(),
+        );
 
-        let res = self.reqwest.post(get_post_url(RequestType::Games))
+        let res = self
+            .reqwest
+            .post(get_post_url(RequestType::Games))
             .headers(headers)
             .body(GET_GAMES_QUERY)
-            .send().await.unwrap();
+            .send()
+            .await
+            .unwrap();
 
         // TODO: parse this into a batch process, deserialize
         // TODO: filter out all the games we aren't gonna play
@@ -143,11 +171,7 @@ fn get_post_url(t: RequestType) -> String {
 }
 
 #[cfg(feature = "ssr")]
-pub struct GetGamesResponse {
-
-}
+pub struct GetGamesResponse {}
 
 #[cfg(feature = "ssr")]
-pub struct GetCoverResponse {
-
-}
+pub struct GetCoverResponse {}
