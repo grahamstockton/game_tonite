@@ -31,7 +31,7 @@ async fn main() {
     //let _ = client.create_session_user("graham", 0, "photo_url").await.expect("failed to create graham");
     //let _ = client.create_session_user("bob", 0, "photo_url2").await.expect("failed  to create bob");
 
-    let users = client
+    /*let users = client
         .get_session_users(0)
         .await
         .expect("failed to get users");
@@ -41,7 +41,7 @@ async fn main() {
     log!("initial sessions {:?}", sessions);
 
     // load sql client
-    //let sql = SqliteClient::new(DB_URL);
+    //let sql = SqliteClient::new(DB_URL);*/
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;

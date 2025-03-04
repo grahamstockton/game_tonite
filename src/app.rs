@@ -72,26 +72,6 @@ fn HomePage() -> impl IntoView {
 
     view! {
         <div>
-            /*<EventCard title={"Cheems Session".to_string()}
-                selected_game={Some(Arc::new(Game {title: "cheemsgame".to_string(), cover_url: "".to_string()}))}
-                owner={Arc::new(User {name: "graham".to_string(), picture: get_url()})}
-                participants={vec![
-                    Arc::new(User {name: "graham".to_string(), picture: get_url()}),
-                    Arc::new(User {name: "jake".to_string(), picture: get_url()}),
-                    Arc::new(User {name: "bob".to_string(), picture: get_url()})
-                ]}
-                suggestions={vec![Arc::new(Game {title: "cheemsgame".to_string(), cover_url: "".to_string()}), Arc::new(Game {title: "gomommor".to_string(), cover_url: "".to_string()})]}
-            />
-            <EventCard title={"Cheems Session".to_string()}
-                selected_game={ None }
-                owner={Arc::new(User {name: "graham".to_string(), picture: get_url()})}
-                participants={vec![
-                    Arc::new(User {name: "graham".to_string(), picture: get_url()}),
-                    Arc::new(User {name: "jake".to_string(), picture: get_url()}),
-                    Arc::new(User {name: "bob".to_string(), picture: get_url()})
-                ]}
-                suggestions={vec![Arc::new(Game {title: "cheemsgame".to_string(), cover_url: "".to_string()}), Arc::new(Game {title: "gomommor".to_string(), cover_url: "".to_string()})]}
-            />*/
             <Calendar />
         </div>
     }

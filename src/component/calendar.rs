@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use chrono::{DateTime, FixedOffset, TimeZone, Timelike, Utc};
-use futures::future::join_all;
+use futures::{future::join_all, io::empty};
 use leptos::{html::Div, logging::log, prelude::*};
 use leptos_use::{
     use_element_size, use_interval_fn, use_scroll, use_window_size, UseElementSizeReturn,
@@ -25,17 +25,14 @@ pub fn Calendar() -> impl IntoView {
     let (timebar_bottom, set_timebar_bottom) = signal(0.);
 
     // node ref for scrolling
-    let e = NodeRef::<Div>::new();
+    //let e = NodeRef::<Div>::new();
     let e2 = NodeRef::<Div>::new();
-    let UseScrollReturn { set_y, .. } = use_scroll(e);
+    //let UseScrollReturn { set_y, .. } = use_scroll(e);
     let UseElementSizeReturn { height, .. } = use_element_size(e2);
     let UseWindowSizeReturn {
         height: window_height,
         ..
     } = use_window_size();
-
-    // get sessions
-    let async_sessions = OnceResource::new(get_events("PLACEHOLDER".to_string()));
 
     // On render (client side) update time via effect.
     // Unfortunately, `use_interval_fn_with_options` initializes before the component renders
@@ -54,7 +51,7 @@ pub fn Calendar() -> impl IntoView {
             // set screen scroll position
             let sy =
                 move || (100. - tb) / 100. * h - SCROLL_OFFSET_PCT * window_height.get_untracked();
-            set_y(sy());
+            //set_y(sy());
         },
         false,
     );
@@ -62,14 +59,15 @@ pub fn Calendar() -> impl IntoView {
     // Update time every 30s
     let _ = use_interval_fn(
         move || {
-            set_time(get_local_time());
-            set_timebar_bottom(calculate_timebar_bottom(time(), STARTING_HOUR_OFFSET));
+            let t = get_local_time();
+            set_time(t);
+            set_timebar_bottom(calculate_timebar_bottom(t, STARTING_HOUR_OFFSET));
         },
         30000,
     );
 
     view! {
-        <div node_ref=e class="relative flex flex-col h-dvh w-dvw bg-slate-950 overflow-y-scroll">
+        <div class="relative flex flex-col h-dvh w-dvw bg-slate-950 overflow-y-scroll">
             <div node_ref=e2 class="relative flex-shrink-0">
                 // background -- hour grid
                 {
@@ -87,36 +85,25 @@ pub fn Calendar() -> impl IntoView {
                 { //TODO: make this not run 3 times for every page reload
                     move || {
                         view! {
-                            <Suspense
-                                fallback=move || view! {}
+                            <Await
+                                future=get_events("PLACEHOLDER".to_string())
+                                let:res
                             >
-                                <Show
-                                    when=move || {
-                                        match async_sessions.get() {
-                                            Some(Ok(_)) => true,
-                                            _ => false,
-                                        }
-                                    }
-                                    fallback=|| {
-                                        log!("unable to find sessions");
-                                        view! {}
-                                    }
-                                >
-                                    {
-                                        async_sessions.get().expect("error unwrapping sessions").unwrap().iter().map(|r| view! {
-                                            <div>
-                                                <EventCard
-                                                    title={r.title.clone()}
-                                                    selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))}
-                                                    owner={Arc::new(r.owner.clone())}
-                                                    participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
-                                                    suggestions={vec![]}
-                                                />
-                                            </div>
-                                        }).collect_view()
-                                    }
-                                </Show>
-                            </Suspense>
+                                {
+                                    let empty_vec: Vec<GamingSession> = vec![];
+                                    res.as_ref().clone().unwrap_or_else(|_| &empty_vec).iter().map(|r| view! {
+                                        <div class="z-1 absolute">
+                                            <EventCard
+                                                title={r.title.clone()} // not this one 
+                                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
+                                                owner={Arc::new(r.owner.clone())}
+                                                participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
+                                                suggestions={vec![]}
+                                            />
+                                        </div>
+                                    }).collect_view()
+                                }
+                            </Await>
                         }
                     }
                 }
@@ -157,14 +144,13 @@ async fn get_events(server_id: String) -> Result<Vec<GamingSession>, ServerFnErr
     // TODO: test this, then use extractors to share an sqlite client across instances
     let client = SqliteClient::new("sqlite://sessions.db").await;
     let sessions = client.get_sessions(&server_id).await.unwrap();
-    log!("{:?}", sessions);
+    log!("getting events");
 
     // TODO: make this call process faster
     let a: Vec<_> = sessions
         .iter()
         .map(|s| async {
             let participants = client.get_session_users(s.session_id).await.unwrap();
-            log!("{:?}", participants);
             let owner_record = participants
                 .iter()
                 .find(|r| s.owner == r.user_id)
