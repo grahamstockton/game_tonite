@@ -118,5 +118,6 @@ lib-default-features = false
 lib-profile-release = "wasm-release"
 
 # Activates the tailwind build
-tailwind-input-file = "style/tailwind.css"
-tailwind-config-file = "style/tailwind.config.js"
+#tailwind-input-file = "style/tailwind.css"
+#tailwind-config-file = "tailwind.config.js"
+style-file = "style/output.css"
