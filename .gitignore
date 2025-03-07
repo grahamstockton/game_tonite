@@ -17,4 +17,7 @@ Cargo.lock
 # node (tailwind)
 node_modules/
 
+# output (tailwind)
+output.css
+
 sessions.db*
