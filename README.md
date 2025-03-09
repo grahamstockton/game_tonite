@@ -4,4 +4,4 @@ Sqlx setup
 * Run `sqlx migrate run`
 
 Tailwind setup
-* `npx tailwindcss -i ./style/tailwind.css -o ./style/output.css --watch`
+* `npx @tailwindcss/cli -i ./style/tailwind.css -o ./style/output.css --watch`

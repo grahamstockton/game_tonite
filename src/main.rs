@@ -26,19 +26,19 @@ async fn main() {
 
     igdb.get_games().await;*/
 
-    let client = SqliteClient::new(DB_URL).await;
+    /*let client = SqliteClient::new(DB_URL).await;
 
-    //let _ = client.create_session_user("graham", 0, "photo_url").await.expect("failed to create graham");
-    //let _ = client.create_session_user("bob", 0, "photo_url2").await.expect("failed  to create bob");
+    let _ = client.create_session_user("graham", 1, "photo_url").await.expect("failed to create graham");
+    let _ = client.create_session_user("bob", 1, "photo_url2").await.expect("failed  to create bob");
 
-    /*let users = client
-        .get_session_users(0)
+    let users = client
+        .get_session_users(1)
         .await
         .expect("failed to get users");
     log!("initial users: {:?}", users);
 
     let sessions = client.get_sessions("PLACEHOLDER").await.unwrap();
-    log!("initial sessions {:?}", sessions);
+    log!("initial sessions {:?}", sessions);*/
 
     // load sql client
     //let sql = SqliteClient::new(DB_URL);*/

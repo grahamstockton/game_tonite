@@ -91,7 +91,7 @@ pub fn Calendar() -> impl IntoView {
                             >
                                 {
                                     let empty_vec: Vec<GamingSession> = vec![];
-                                    res.as_ref().clone().unwrap_or_else(|_| &empty_vec).iter().map(|r| view! {
+                                    res.as_ref().unwrap_or_else(|_| &empty_vec).iter().map(|r| view! {
                                         <div class="z-1 absolute">
                                             <EventCard
                                                 title={r.title.clone()} // not this one 
@@ -144,7 +144,7 @@ async fn get_events(server_id: String) -> Result<Vec<GamingSession>, ServerFnErr
     // TODO: test this, then use extractors to share an sqlite client across instances
     let client = SqliteClient::new("sqlite://sessions.db").await;
     let sessions = client.get_sessions(&server_id).await.unwrap();
-    log!("getting events");
+    log!("getting events: {}", Utc::now());
 
     // TODO: make this call process faster
     let a: Vec<_> = sessions
