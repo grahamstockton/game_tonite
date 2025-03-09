@@ -67,7 +67,7 @@ pub fn Calendar() -> impl IntoView {
     );
 
     view! {
-        <div class="relative flex flex-col h-dvh w-dvw bg-slate-950 overflow-y-scroll">
+        <div class="relative flex flex-col h-dvh w-dvw overflow-y-scroll">
             <div node_ref=e2 class="relative flex-shrink-0">
                 // background -- hour grid
                 {
@@ -75,8 +75,8 @@ pub fn Calendar() -> impl IntoView {
                         let v = (h + STARTING_HOUR_OFFSET) % 24;
                         view! {
                             <div class="h-24 flex-shrink-0">
-                                <hr class="z-0 border-gray-400"/>
-                                <p class="z-0 pl-2 text-gray-400">{format!("{:0>2}:00", v)}</p>
+                                <hr class="z-0 border-neutral-content"/>
+                                <p class="z-0 pl-2 text-neutral-content">{format!("{:0>2}:00", v)}</p>
                             </div>
                         }
                     }).collect_view()
@@ -110,19 +110,11 @@ pub fn Calendar() -> impl IntoView {
 
                 // overlay -- current time indicator
                 <div class="absolute w-full flex-shrink-0" style={move || format!("bottom: {}%;", timebar_bottom()) }>
-                    <p class="text-sm pr-2 text-right z-2 text-fuchsia-700">{ move || format!("{}", time().format("%H:%M")) }</p>
-                    <hr class="border z-2 w-full border-fuchsia-700"/>
+                    <p class="text-sm pr-2 text-right z-2 text-secondary">{ move || format!("{}", time().format("%H:%M")) }</p>
+                    <div class="z-2 divider divider-secondary h-px m-0"></div>
                 </div>
             </div>
         </div>
-        <div class="badge badge-primary">Primary</div>
-        <div class="badge badge-secondary">Secondary</div>
-        <div class="badge badge-accent">Accent</div>
-        <div class="badge badge-neutral">Neutral</div>
-        <div class="badge badge-info">Info</div>
-        <div class="badge badge-success">Success</div>
-        <div class="badge badge-warning">Warning</div>
-        <div class="badge badge-error">Error</div>
     }
 }
 
