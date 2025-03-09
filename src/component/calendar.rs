@@ -25,9 +25,9 @@ pub fn Calendar() -> impl IntoView {
     let (timebar_bottom, set_timebar_bottom) = signal(0.);
 
     // node ref for scrolling
-    //let e = NodeRef::<Div>::new();
+    let e = NodeRef::<Div>::new();
     let e2 = NodeRef::<Div>::new();
-    //let UseScrollReturn { set_y, .. } = use_scroll(e);
+    let UseScrollReturn { set_y, .. } = use_scroll(e);
     let UseElementSizeReturn { height, .. } = use_element_size(e2);
     let UseWindowSizeReturn {
         height: window_height,
@@ -51,7 +51,7 @@ pub fn Calendar() -> impl IntoView {
             // set screen scroll position
             let sy =
                 move || (100. - tb) / 100. * h - SCROLL_OFFSET_PCT * window_height.get_untracked();
-            //set_y(sy());
+            set_y(sy());
         },
         false,
     );
@@ -67,7 +67,7 @@ pub fn Calendar() -> impl IntoView {
     );
 
     view! {
-        <div class="relative flex flex-col h-dvh w-dvw overflow-y-scroll">
+        <div node_ref=e class="relative flex flex-col h-dvh w-dvw overflow-y-scroll">
             <div node_ref=e2 class="relative flex-shrink-0">
                 // background -- hour grid
                 {
@@ -75,8 +75,8 @@ pub fn Calendar() -> impl IntoView {
                         let v = (h + STARTING_HOUR_OFFSET) % 24;
                         view! {
                             <div class="h-24 flex-shrink-0">
-                                <hr class="z-0 border-neutral-content"/>
-                                <p class="z-0 pl-2 text-neutral-content">{format!("{:0>2}:00", v)}</p>
+                                <hr class="z-0 border-contrast"/>
+                                <p class="z-0 pl-2 text-contrast">{format!("{:0>2}:00", v)}</p>
                             </div>
                         }
                     }).collect_view()
@@ -110,8 +110,8 @@ pub fn Calendar() -> impl IntoView {
 
                 // overlay -- current time indicator
                 <div class="absolute w-full flex-shrink-0" style={move || format!("bottom: {}%;", timebar_bottom()) }>
-                    <p class="text-sm pr-2 text-right z-2 text-secondary">{ move || format!("{}", time().format("%H:%M")) }</p>
-                    <div class="z-2 divider divider-secondary h-px m-0"></div>
+                    <p class="text-sm pr-2 text-right z-2 text-accent">{ move || format!("{}", time().format("%H:%M")) }</p>
+                    <div class="z-2 divider divider-accent h-px m-0"></div>
                 </div>
             </div>
         </div>
