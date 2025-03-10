@@ -18,7 +18,7 @@ pub fn EventCard(
     let game_selected = selected_game.is_some();
 
     view! {
-        <div class="flex w-48 flex-col rounded-xl p-4 border border-gray-700 bg-gray-800 -outline-offset-1 outline-white/10">
+        <div class="flex w-48 flex-col rounded-xl p-4 border -outline-offset-1 outline-white/10">
             // event title and header
             <div id="header-box">
                 // event title
@@ -37,14 +37,15 @@ pub fn EventCard(
                         src={ owner.get_picture() }
                         alt={format!("{}'s profile picture", owner.get_name())}
                         class="size-8 shrink-0 rounded-full"
+                        loading="eager"
                     />
-                    <p class="text-gray-400 font-medium">{ owner.get_name() }</p>
+                    <p class="font-medium">{ owner.get_name() }</p>
                 </div>
             </div>
 
             // participants
             <div id="participants-div">
-                <h2 class="text-lg font-semibold text-white">Participants</h2>
+                <h2 class="text-lg font-semibold">Participants</h2>
                 {
                     participants.iter()
                         .map(|p| view! {
@@ -53,8 +54,9 @@ pub fn EventCard(
                                     src={ p.get_picture() }
                                     alt={format!("{}'s profile picture", p.get_name())}
                                     class="size-6 shrink-0 rounded-full"
+                                    loading="eager"
                                 />
-                                <p class="font-sm text-gray-400">{ p.get_name() }</p>
+                                <p class="font-sm">{ p.get_name() }</p>
                             </div>
                         })
                         .collect_view()
@@ -65,10 +67,10 @@ pub fn EventCard(
             <div id="suggestions-div">
                 {
                     (!game_selected).then(|| view! {
-                        <h2 class="text-lg text-white font-semibold">Suggestions</h2>
+                        <h2 class="text-lg font-semibold">Suggestions</h2>
                         {
                             suggestions.iter()
-                                .map(|s| view! {<p class="font-sm text-gray-400">{ s.get_title() }</p>})
+                                .map(|s| view! {<p class="font-sm">{ s.get_title() }</p>})
                                 .collect_view()
                         }
                     })

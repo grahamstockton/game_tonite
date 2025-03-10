@@ -69,6 +69,35 @@ pub fn Calendar() -> impl IntoView {
     view! {
         <div node_ref=e class="relative flex flex-col h-dvh w-dvw overflow-y-scroll">
             <div node_ref=e2 class="relative flex-shrink-0">
+                // foreground layer -- event components
+                { //TODO: make this not run 3 times for every page reload
+                    move || {
+                        view! {
+                            <div class="absolute top-0">
+                                <Await
+                                    future=get_events("PLACEHOLDER".to_string())
+                                    let:res
+                                >
+                                    {
+                                        let empty_vec: Vec<GamingSession> = vec![];
+                                        res.as_ref().unwrap_or_else(|_| &empty_vec).iter().map(|r| view! {
+                                            <div class="z-1 absolute top-100">
+                                                <EventCard
+                                                    title={r.title.clone()} // not this one 
+                                                    selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
+                                                    owner={Arc::new(r.owner.clone())}
+                                                    participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
+                                                    suggestions={vec![]}
+                                                />
+                                            </div>
+                                        }).collect_view()
+                                    }
+                                </Await>
+                            </div>
+                        }
+                    }
+                }
+            
                 // background -- hour grid
                 {
                     (0..24).map(|h| {
@@ -80,32 +109,6 @@ pub fn Calendar() -> impl IntoView {
                             </div>
                         }
                     }).collect_view()
-                }
-                // foreground layer -- event components
-                { //TODO: make this not run 3 times for every page reload
-                    move || {
-                        view! {
-                            <Await
-                                future=get_events("PLACEHOLDER".to_string())
-                                let:res
-                            >
-                                {
-                                    let empty_vec: Vec<GamingSession> = vec![];
-                                    res.as_ref().unwrap_or_else(|_| &empty_vec).iter().map(|r| view! {
-                                        <div class="z-1 absolute">
-                                            <EventCard
-                                                title={r.title.clone()} // not this one 
-                                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
-                                                owner={Arc::new(r.owner.clone())}
-                                                participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
-                                                suggestions={vec![]}
-                                            />
-                                        </div>
-                                    }).collect_view()
-                                }
-                            </Await>
-                        }
-                    }
                 }
 
                 // overlay -- current time indicator
