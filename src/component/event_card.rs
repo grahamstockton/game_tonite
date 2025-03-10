@@ -18,53 +18,50 @@ pub fn EventCard(
     let game_selected = selected_game.is_some();
 
     view! {
-        <div class="flex w-48 flex-col rounded-xl p-4 border -outline-offset-1 outline-white/10">
-            // event title and header
-            <div id="header-box">
-                // event title
-                <h1 class = "text-xl font-large font-bold text-white">{ title }</h1>
-
+        <div class="card bg-primary card-border border-primary-content shadow-sm">
+            <div class="card-body">
+                <h2 class="text-xl font-bold">{ title }</h2>
                 // game title if game selected
                 {
                     selected_game.map(|g| view!{
-                        <p class="text-gray-400 font-medium">{ g.get_title() }</p>
+                        <span>{ g.get_title() }</span>
                     })
                 }
-
                 // owner
                 <div class="flex flex-row gap-1">
                     <img
                         src={ owner.get_picture() }
                         alt={format!("{}'s profile picture", owner.get_name())}
                         class="size-8 shrink-0 rounded-full"
-                        loading="eager"
                     />
-                    <p class="font-medium">{ owner.get_name() }</p>
+                    <span class="text-sm">{ owner.get_name() }</span>
                 </div>
-            </div>
-
-            // participants
-            <div id="participants-div">
-                <h2 class="text-lg font-semibold">Participants</h2>
-                {
-                    participants.iter()
+                // participants
+                <div class="avatar-group bg-primary -space-x-4">
+                    {
+                        participants.iter()
                         .map(|p| view! {
-                            <div class="flex flex-row gap-1">
-                                <img
-                                    src={ p.get_picture() }
-                                    alt={format!("{}'s profile picture", p.get_name())}
-                                    class="size-6 shrink-0 rounded-full"
-                                    loading="eager"
-                                />
-                                <p class="font-sm">{ p.get_name() }</p>
+                            <div class="avatar border-primary border-2">
+                                <div class="w-8">
+                                    <img
+                                        src={ get_url() }
+                                        alt={format!("{}'s profile picture", p.get_name())}
+                                        loading="eager"
+                                    />
+                                </div>
                             </div>
                         })
                         .collect_view()
-                }
-            </div>
+                    }
+                    <div class="avatar avatar-placeholder border-primary border-2">
+                        <div class="bg-neutral text-neutral-content w-8">
+                            <span>{ format!("+{}", participants.len()) }</span>
+                        </div>
+                    </div>
+                </div>
 
-            // suggestions if game not selected
-            <div id="suggestions-div">
+                    // suggestions if game not selected
+                <div id="suggestions-div">
                 {
                     (!game_selected).then(|| view! {
                         <h2 class="text-lg font-semibold">Suggestions</h2>
@@ -75,7 +72,13 @@ pub fn EventCard(
                         }
                     })
                 }
+                </div>
             </div>
         </div>
     }
+}
+
+fn get_url() -> String {
+    "https://wallpapers.com/images/featured/discord-profile-pictures-xk3qyllfj1j46kte.jpg"
+        .to_string()
 }
