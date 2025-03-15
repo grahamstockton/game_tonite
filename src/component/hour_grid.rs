@@ -1,5 +1,9 @@
 use leptos::prelude::*;
 
+/**
+ * Hour grid. 24 divs, offset by a certain number of hours.
+ * For example, if offset is 6, will start at 6am and end at 5am
+ */
 #[component]
 pub fn HourGrid(offset: usize) -> impl IntoView {
     (0..24)

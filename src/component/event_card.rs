@@ -4,6 +4,9 @@ use leptos::prelude::*;
 
 use super::model::{Game, User};
 
+/**
+ * Display component for an event.
+ */
 #[component]
 pub fn EventCard(
     title: String,

@@ -11,6 +11,9 @@ use crate::component::{
 
 use super::model::GamingSession;
 
+/**
+ * Gets calendar events from sqlite. Creates event cards for each
+ */
 #[component]
 pub fn CalendarEvents() -> impl IntoView {
     view! {

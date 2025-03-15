@@ -1,6 +1,9 @@
 use chrono::{DateTime, FixedOffset};
 use leptos::prelude::*;
 
+/**
+ * Time overlay component. Takes in a time and a bottom padding and creates an overlay displaying that time.
+ */
 #[component]
 pub fn TimeOverlay(
     bottom_pad_pct: ReadSignal<f64>,
