@@ -1,3 +1,7 @@
 pub mod calendar;
-pub mod event_card;
-pub mod model;
+mod calendar_events;
+mod event_card;
+mod hour_grid;
+mod model;
+mod time_overlay;
+mod time_util;

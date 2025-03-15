@@ -1,16 +1,16 @@
-use std::sync::Arc;
-
-use chrono::{DateTime, FixedOffset, TimeZone, Timelike, Utc};
-use futures::future::join_all;
-use leptos::{html::Div, logging::log, prelude::*};
+use chrono::{DateTime, FixedOffset};
+use leptos::{html::Div, prelude::*};
 use leptos_use::{
     use_element_size, use_interval_fn, use_scroll, use_window_size, UseElementSizeReturn,
     UseScrollReturn, UseWindowSizeReturn,
 };
 
-use crate::component::{event_card::EventCard, model::Game};
-
-use super::model::{GamingSession, User};
+use crate::component::{
+    calendar_events::CalendarEvents,
+    hour_grid::HourGrid,
+    time_overlay::TimeOverlay,
+    time_util::{calculate_timebar_bottom, get_local_time},
+};
 
 #[component]
 pub fn Calendar() -> impl IntoView {
@@ -69,102 +69,15 @@ pub fn Calendar() -> impl IntoView {
     view! {
         <div node_ref=e class="relative flex flex-col h-dvh w-dvw overflow-y-scroll">
             <div node_ref=e2 class="relative flex-shrink-0">
-                <div class="absolute top-0">
-                    <Await
-                        future=get_events("PLACEHOLDER".to_string())
-                        let:res
-                    >
-                        {
-                            let empty_vec: Vec<GamingSession> = vec![];
-                            res.as_ref().unwrap_or_else(|_| &empty_vec).iter().map(|r| view! {
-                                <div class="z-1 absolute top-100">
-                                    <EventCard
-                                        title={r.title.clone()} // not this one
-                                        selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
-                                        owner={Arc::new(r.owner.clone())}
-                                        participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
-                                        suggestions={vec![]}
-                                    />
-                                </div>
-                            }).collect_view()
-                        }
-                    </Await>
-                </div>
+                // foreground -- calendar events
+                <CalendarEvents />
 
                 // background -- hour grid
-                {
-                    (0..24).map(|h| {
-                        let v = (h + STARTING_HOUR_OFFSET) % 24;
-                        view! {
-                            <div class="h-36 flex-shrink-0">
-                                <hr class="z-0 border-contrast"/>
-                                <p class="z-0 pl-2 text-contrast">{format!("{:0>2}:00", v)}</p>
-                            </div>
-                        }
-                    }).collect_view()
-                }
+                <HourGrid offset={STARTING_HOUR_OFFSET}/>
 
                 // overlay -- current time indicator
-                <div class="absolute w-full flex-shrink-0" style={move || format!("bottom: {}%;", timebar_bottom()) }>
-                    <p class="text-sm pr-2 text-right z-2 text-accent">{ move || format!("{}", time().format("%H:%M")) }</p>
-                    <div class="z-2 divider divider-accent h-px m-0"></div>
-                </div>
+                <TimeOverlay bottom_pad_pct={timebar_bottom} time={time} />
             </div>
         </div>
     }
-}
-
-// Given a date and a number of hours offset for the display, return bottom padding
-fn calculate_timebar_bottom(t: DateTime<FixedOffset>, offset: usize) -> f64 {
-    let nsfm = t.num_seconds_from_midnight() as f64;
-    let offset_secs = offset as f64 * 3600.;
-
-    if nsfm < offset_secs {
-        100. * (offset_secs - nsfm) / 86400.
-    } else {
-        100. * (1. - (nsfm - offset_secs) / 86400.)
-    }
-}
-
-// get the local time with timezone from the client
-fn get_local_time() -> DateTime<FixedOffset> {
-    let mins_offset = js_sys::Date::new_0().get_timezone_offset();
-    let offset = FixedOffset::west_opt((mins_offset * 60.) as i32).unwrap();
-
-    offset.from_utc_datetime(&Utc::now().naive_utc())
-}
-
-#[server]
-async fn get_events(server_id: String) -> Result<Vec<GamingSession>, ServerFnError> {
-    use crate::dao::sqlite_util::SqliteClient;
-    // TODO: test this, then use extractors to share an sqlite client across instances
-    let client = SqliteClient::new("sqlite://sessions.db").await;
-    let sessions = client.get_sessions(&server_id).await.unwrap();
-    log!("getting events: {}", Utc::now());
-
-    // TODO: make this call process faster
-    let a: Vec<_> = sessions
-        .iter()
-        .map(|s| async {
-            let participants = client.get_session_users(s.session_id).await.unwrap();
-            let owner_record = participants
-                .iter()
-                .find(|r| s.owner == r.user_id)
-                .expect("no owner found for session");
-
-            GamingSession {
-                server_id: s.server_id.clone(),
-                session_id: s.session_id,
-                title: s.title.clone(),
-                start_time: DateTime::parse_from_rfc3339(&s.start_time)
-                    .unwrap()
-                    .to_utc(),
-                end_time: DateTime::parse_from_rfc3339(&s.end_time).unwrap().to_utc(),
-                owner: User::from(owner_record),
-                participants: participants.iter().map(User::from).collect(),
-            }
-        })
-        .collect();
-
-    Ok(join_all(a).await)
 }
