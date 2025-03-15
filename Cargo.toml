@@ -47,6 +47,9 @@ ssr = [
     "dep:sqlx",
 ]
 
+[env]
+DATABASE_URL = "sqlite://sessions.db"
+
 # Defines a size-optimized profile for the WASM bundle in release mode
 [profile.wasm-release]
 inherits = "release"

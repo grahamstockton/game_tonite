@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use leptos::{
-    html::{div, h1, img, p},
-    prelude::*,
-};
+use leptos::prelude::*;
 
 use super::model::{Game, User};
 

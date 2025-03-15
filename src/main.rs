@@ -1,19 +1,12 @@
 #[cfg(feature = "ssr")]
-const DB_URL: &str = "sqlite://sessions.db";
-
-#[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     use axum::Router;
-    use chrono::Utc;
-    use dotenv::dotenv;
-    use gaming_calendar_website::{app::*, dao::sqlite_util::SqliteClient};
+    use gaming_calendar_website::app::*;
     use leptos::logging::log;
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
 
-    // load env vars
-    dotenv().ok();
     /*let client_id_str = std::env::var("CLIENT_ID").expect("couldn't find client id");
     let secret_val = std::env::var("SECRET").expect("couldn't find secret");
 
@@ -42,7 +35,6 @@ async fn main() {
 
     // load sql client
     //let sql = SqliteClient::new(DB_URL);*/
-
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
     let leptos_options = conf.leptos_options;

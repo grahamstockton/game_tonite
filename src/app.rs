@@ -1,17 +1,10 @@
-use std::sync::Arc;
-
-use crate::component::{
-    calendar::Calendar,
-    event_card::EventCard,
-    model::{Game, User},
-    user_profile_display::UserProfileDisplay,
-};
+use crate::component::calendar::Calendar;
+use leptos::prelude::*;
 use leptos::Params;
-use leptos::{logging::log, prelude::*};
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
     components::{Route, Router, Routes},
-    hooks::{use_params, use_params_map},
+    hooks::use_params_map,
     params::Params,
     path, StaticSegment,
 };
@@ -75,9 +68,4 @@ fn HomePage() -> impl IntoView {
             <Calendar />
         </div>
     }
-}
-
-fn get_url() -> String {
-    "https://wallpapers.com/images/featured/discord-profile-pictures-xk3qyllfj1j46kte.jpg"
-        .to_string()
 }

@@ -1,3 +1,4 @@
+#[cfg(feature = "ssr")]
 use chrono::Utc;
 
 cfg_if::cfg_if! {
