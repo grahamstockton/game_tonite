@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, FixedOffset, TimeZone, Timelike, Utc};
+use anyhow::Result;
+use chrono::{DateTime, Days, Duration, FixedOffset, SubsecRound, TimeZone, Timelike, Utc};
 
 use super::model::GamingSession;
 
@@ -25,10 +26,47 @@ pub fn calculate_timebar_bottom(t: DateTime<FixedOffset>, offset: usize) -> f64 
 }
 
 /**
+ * Get the percent throughout the timeline, with offset.
+ * Baseline time should be midnight on the day the offset is applied to.
+ * Limited between 0 and 1.
+ */
+pub fn calculate_time_pct(
+    time: DateTime<FixedOffset>,
+    baseline: DateTime<FixedOffset>,
+    offset: usize,
+) -> f64 {
+    let pct = (time - baseline).num_seconds() as f64 / 86400. - (offset as f64) / 24.;
+    if pct > 1. {
+        1.
+    } else if pct < 0. {
+        0.
+    } else {
+        pct
+    }
+}
+
+/**
+ * Create the baseline time from a time and offset
+ * If time < offset: return beginning of previous day
+ * If time >= offset: return beginning of current day
+ */
+pub fn create_baseline(
+    time: DateTime<FixedOffset>,
+    offset: usize,
+) -> Result<DateTime<FixedOffset>> {
+    let seconds_from_midnight = time.num_seconds_from_midnight();
+    if seconds_from_midnight < offset as u32 * 3600 {
+        Ok(time - Duration::seconds((86400 + seconds_from_midnight) as i64))
+    } else {
+        Ok(time - Duration::seconds(seconds_from_midnight as i64))
+    }
+}
+
+/**
  * Stack elements in horizontal space so they don't overlap
  * Returns a HashMap of session_id to positioning. Positioning starts at 0.
  */
-pub fn get_events_stacking(events: Vec<GamingSession>) -> HashMap<i64, i32> {
+pub fn get_events_stacking(events: &Vec<GamingSession>) -> HashMap<i64, i32> {
     // sort by starting time
     let mut sorted_events = events.clone();
     sorted_events.sort_by_key(|e| e.start_time);
@@ -145,7 +183,7 @@ mod tests {
     fn test_empty_case() {
         let input: Vec<GamingSession> = vec![];
         let expected: HashMap<i64, i32> = HashMap::new();
-        let res = get_events_stacking(input);
+        let res = get_events_stacking(&input);
         assert_eq!(expected, res);
     }
 
@@ -158,7 +196,7 @@ mod tests {
         ];
         let expected: HashMap<i64, i32> =
             HashMap::from([(setup.session_id_1, 0), (setup.session_id_2, 1)]);
-        let res = get_events_stacking(input);
+        let res = get_events_stacking(&input);
         assert_eq!(expected, res);
     }
 
@@ -171,7 +209,7 @@ mod tests {
         ];
         let expected: HashMap<i64, i32> =
             HashMap::from([(setup.session_id_1, 0), (setup.session_id_2, 0)]);
-        let res = get_events_stacking(input);
+        let res = get_events_stacking(&input);
         assert_eq!(expected, res);
     }
 
@@ -188,7 +226,7 @@ mod tests {
             (setup.session_id_2, 1),
             (setup.session_id_3, 0),
         ]);
-        let res = get_events_stacking(input);
+        let res = get_events_stacking(&input);
         assert_eq!(expected, res);
     }
 
@@ -205,7 +243,7 @@ mod tests {
             (setup.session_id_2, 0),
             (setup.session_id_3, 1),
         ]);
-        let res = get_events_stacking(input);
+        let res = get_events_stacking(&input);
         assert_eq!(expected, res);
     }
 }

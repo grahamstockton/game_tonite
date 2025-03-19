@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
+use chrono::{DateTime, FixedOffset};
 use leptos::prelude::*;
+
+use crate::component::time_util::calculate_time_pct;
 
 use super::model::{Game, User};
 
@@ -14,11 +17,19 @@ pub fn EventCard(
     owner: Arc<User>,
     participants: Vec<Arc<User>>,
     suggestions: Vec<Arc<Game>>,
+    start_time: DateTime<FixedOffset>,
+    end_time: DateTime<FixedOffset>,
+    baseline: DateTime<FixedOffset>,
+    offset: usize,
 ) -> impl IntoView {
     let game_selected = selected_game.is_some();
+    let start_pct = calculate_time_pct(start_time, baseline, offset);
+    let end_pct = calculate_time_pct(end_time, baseline, offset);
 
     view! {
-        <div class="card bg-primary card-border border-primary-content shadow-sm">
+        <div class="z-1 absolute top-100 card bg-primary card-border border-primary-content shadow-sm"
+            style={ format!("top: {}%; bottom: {}%;", start_pct, end_pct) }
+        >
             <div class="card-body">
                 <h2 class="text-xl font-bold">{ title }</h2>
                 // game title if game selected

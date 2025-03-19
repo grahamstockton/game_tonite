@@ -87,7 +87,7 @@ impl SqliteClient {
     }
 
     // session table -- read, only for one day
-    pub async fn get_sessions_starting_in_range(
+    pub async fn get_sessions_in_range(
         &self,
         server_id: &str,
         start_time: DateTime<Utc>,

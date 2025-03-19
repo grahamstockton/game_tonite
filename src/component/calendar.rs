@@ -9,7 +9,7 @@ use crate::component::{
     calendar_events::CalendarEvents,
     hour_grid::HourGrid,
     time_overlay::TimeOverlay,
-    time_util::{calculate_timebar_bottom, get_local_time},
+    time_util::{calculate_timebar_bottom, create_baseline, get_local_time},
 };
 
 #[component]
@@ -23,6 +23,9 @@ pub fn Calendar() -> impl IntoView {
     let (time, set_time) =
         signal::<DateTime<FixedOffset>>(DateTime::from_timestamp(0, 0).unwrap().fixed_offset());
     let (timebar_bottom, set_timebar_bottom) = signal(0.);
+
+    // client side baseline time. Updated only once
+    let (baseline, set_baseline) = signal::<Option<DateTime<FixedOffset>>>(None);
 
     // node ref for scrolling
     let e = NodeRef::<Div>::new();
@@ -48,6 +51,9 @@ pub fn Calendar() -> impl IntoView {
             let tb = calculate_timebar_bottom(t, STARTING_HOUR_OFFSET);
             set_timebar_bottom(tb);
 
+            // set baseline
+            set_baseline(create_baseline(t, STARTING_HOUR_OFFSET).ok());
+
             // set screen scroll position
             let sy =
                 move || (100. - tb) / 100. * h - SCROLL_OFFSET_PCT * window_height.get_untracked();
@@ -70,7 +76,8 @@ pub fn Calendar() -> impl IntoView {
         <div node_ref=e class="relative flex flex-col h-dvh w-dvw overflow-y-scroll">
             <div node_ref=e2 class="relative flex-shrink-0">
                 // foreground -- calendar events
-                <CalendarEvents />
+                // ** time() without move || is intentional. Only want it once per load
+                <CalendarEvents baseline={baseline} offset={STARTING_HOUR_OFFSET}/>
 
                 // background -- hour grid
                 <HourGrid offset={STARTING_HOUR_OFFSET}/>

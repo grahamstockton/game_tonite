@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, FixedOffset, Utc};
 use futures::future::join_all;
 use leptos::{logging::log, prelude::*};
 
 use crate::component::{
     event_card::EventCard,
     model::{Game, User},
+    time_util::get_events_stacking,
 };
 
 use super::model::GamingSession;
@@ -15,38 +16,65 @@ use super::model::GamingSession;
  * Gets calendar events from sqlite. Creates event cards for each
  */
 #[component]
-pub fn CalendarEvents() -> impl IntoView {
+pub fn CalendarEvents(
+    baseline: ReadSignal<Option<DateTime<FixedOffset>>>,
+    offset: usize,
+) -> impl IntoView {
     view! {
-        <div class="absolute top-0">
-            <Await
-                future=get_events("PLACEHOLDER".to_string())
-                let:res
-            >
-                {
-                    let empty_vec: Vec<GamingSession> = vec![];
-                    res.as_ref().unwrap_or_else(|_| &empty_vec).iter().map(|r| view! {
-                        <div class="z-1 absolute top-100">
-                            <EventCard
-                                title={r.title.clone()} // not this one
-                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
-                                owner={Arc::new(r.owner.clone())}
-                                participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
-                                suggestions={vec![]}
-                            />
-                        </div>
-                    }).collect_view()
-                }
-            </Await>
-        </div>
+        <Show
+            when=move || { baseline().is_some() }
+            fallback=|| view! {}
+        >
+        {
+            let baseline_date = move || baseline().unwrap();
+            let window_start = baseline_date() + Duration::hours(offset as i64);
+            let window_end = baseline_date() + Duration::hours(24 + offset as i64);
+            view!{
+                <div class="absolute top-0">
+                    <Await
+                        future=get_events("PLACEHOLDER".to_string(), window_start, window_end)
+                        let:res
+                    >
+                        {
+                            // todo: put all of these silly dates into an object together
+                            let empty_vec: Vec<GamingSession> = vec![];
+                            let events = res.as_ref().unwrap_or_else(|_| &empty_vec);
+                            let events_stacking = get_events_stacking(events);
+                            events.iter().map(|r| view! {
+                                <EventCard
+                                    title={r.title.clone()} // not this one
+                                    selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
+                                    owner={Arc::new(r.owner.clone())}
+                                    participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
+                                    suggestions={vec![]}
+                                    start_time={r.start_time.fixed_offset()}
+                                    end_time={r.end_time.fixed_offset()}
+                                    baseline={ baseline_date() }
+                                    offset={offset}
+                                />
+                            }).collect_view()
+                        }
+                    </Await>
+                </div>
+            }
+        }
+        </Show>
     }
 }
 
 #[server]
-async fn get_events(server_id: String) -> Result<Vec<GamingSession>, ServerFnError> {
+async fn get_events(
+    server_id: String,
+    start_time: DateTime<FixedOffset>,
+    end_time: DateTime<FixedOffset>,
+) -> Result<Vec<GamingSession>, ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
     // TODO: test this, then use extractors to share an sqlite client across instances
     let client = SqliteClient::new("sqlite://sessions.db").await;
-    let sessions = client.get_sessions(&server_id).await.unwrap();
+    let sessions = client
+        .get_sessions_in_range(&server_id, start_time.to_utc(), end_time.to_utc())
+        .await
+        .unwrap();
     log!("getting events: {}", Utc::now());
 
     // TODO: make this call process faster
