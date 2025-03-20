@@ -29,33 +29,31 @@ pub fn CalendarEvents(
             let baseline_date = move || baseline().unwrap();
             let window_start = baseline_date() + Duration::hours(offset as i64);
             let window_end = baseline_date() + Duration::hours(24 + offset as i64);
-            view!{
-                <div class="absolute top-0">
-                    <Await
-                        future=get_events("PLACEHOLDER".to_string(), window_start, window_end)
-                        let:res
-                    >
-                        {
-                            // todo: put all of these silly dates into an object together
-                            let empty_vec: Vec<GamingSession> = vec![];
-                            let events = res.as_ref().unwrap_or_else(|_| &empty_vec);
-                            let events_stacking = get_events_stacking(events);
-                            events.iter().map(|r| view! {
-                                <EventCard
-                                    title={r.title.clone()} // not this one
-                                    selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
-                                    owner={Arc::new(r.owner.clone())}
-                                    participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
-                                    suggestions={vec![]}
-                                    start_time={r.start_time.fixed_offset()}
-                                    end_time={r.end_time.fixed_offset()}
-                                    baseline={ baseline_date() }
-                                    offset={offset}
-                                />
-                            }).collect_view()
-                        }
-                    </Await>
-                </div>
+            view! {
+                <Await
+                    future=get_events("PLACEHOLDER".to_string(), window_start, window_end)
+                    let:res
+                >
+                    {
+                        let empty_vec: Vec<GamingSession> = vec![];
+                        let events = res.as_ref().unwrap_or_else(|_| &empty_vec);
+                        let events_stacking = get_events_stacking(events);
+                        events.iter().map(|r| view! {
+                            <EventCard
+                                title={r.title.clone()} // not this one
+                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
+                                owner={Arc::new(r.owner.clone())}
+                                participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
+                                suggestions={vec![]}
+                                start_time={r.start_time.fixed_offset()}
+                                end_time={r.end_time.fixed_offset()}
+                                baseline={ baseline_date() }
+                                stacking_col={ events_stacking.get(&r.session_id).unwrap().clone() }
+                                offset={offset}
+                            />
+                        }).collect_view()
+                    }
+                </Await>
             }
         }
         </Show>
