@@ -11,9 +11,10 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX idx_server_id
 ON sessions (server_id);
 CREATE TABLE IF NOT EXISTS users (
-            user_id VARCHAR(250) PRIMARY KEY NOT NULL,
+            user_id VARCHAR(250) NOT NULL,
             session_id INTEGER NOT NULL,
             user_photo VARCHAR(250) NOT NULL,
+            PRIMARY KEY (session_id, user_id),
             FOREIGN KEY (session_id)
                 REFERENCES sessions (session_id)
                 ON DELETE CASCADE
