@@ -25,11 +25,8 @@ CREATE TABLE IF NOT EXISTS preferences (
             session_id INTEGER NOT NULL,
             suggested_game VARCHAR(250) NOT NULL,
             is_selected BOOL NOT NULL,
-            FOREIGN KEY (user_id)
-                REFERENCES users (user_id)
-                ON DELETE CASCADE,
-            FOREIGN KEY (session_id)
-                REFERENCES sessions (session_id)
+            FOREIGN KEY (user_id, session_id)
+                REFERENCES users (user_id, session_id)
                 ON DELETE CASCADE
 );
 CREATE INDEX idx_for_preferences

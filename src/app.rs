@@ -1,4 +1,5 @@
 use crate::component::calendar::Calendar;
+use crate::component::navbar::NavBar;
 use leptos::prelude::*;
 use leptos::Params;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
@@ -64,8 +65,13 @@ fn HomePage() -> impl IntoView {
     let group_id = move || params.read().get("id").unwrap_or_default();
 
     view! {
-        <div>
-            <Calendar />
+        <div class="relative">
+            <div class="relative">
+                <NavBar />
+            </div>
+            <div class="relative">
+                <Calendar />
+            </div>
         </div>
     }
 }

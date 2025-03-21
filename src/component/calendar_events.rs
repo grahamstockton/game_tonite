@@ -40,8 +40,8 @@ pub fn CalendarEvents(
                         let events_stacking = get_events_stacking(events);
                         events.iter().map(|r| view! {
                             <EventCard
-                                title={r.title.clone()} // not this one
-                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))} // not this one
+                                title={r.title.clone()}
+                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))}
                                 owner={Arc::new(r.owner.clone())}
                                 participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
                                 suggestions={vec![]}
