@@ -20,7 +20,7 @@ pub fn NavBar() -> impl IntoView {
                 <a class="btn btn-ghost text-xl">Game Tonite!</a>
             </div>
             <div class="flex-none">
-                <div class="dropdown">
+                <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="btn m-1">
                         Theme
                         <svg
@@ -32,14 +32,14 @@ pub fn NavBar() -> impl IntoView {
                         <path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path>
                         </svg>
                     </div>
-                    <ul tabindex="0" class="dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl">
+                    <ul tabindex="0" class="dropdown-content bg-base-300 rounded-box z-1 w-52 p-3 shadow-2xl">
                         {
                             themes.into_iter().map(|t| view! {
-                                <li>
+                                <li class="">
                                 <input
                                     type="radio"
                                     name="theme-dropdown"
-                                    class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
+                                    class="theme-controller w-full mt-[3px] mb-[3px] btn btn-sm border-0 btn-block btn-ghost justify-start"
                                     aria-label={ t.to_string() }
                                     value={ t.to_string() }
                                 />

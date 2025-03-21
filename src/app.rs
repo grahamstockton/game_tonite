@@ -66,10 +66,10 @@ fn HomePage() -> impl IntoView {
 
     view! {
         <div class="relative">
-            <div class="relative">
+            <div class="relative z-4">
                 <NavBar />
             </div>
-            <div class="relative">
+            <div class="relative z-0">
                 <Calendar />
             </div>
         </div>

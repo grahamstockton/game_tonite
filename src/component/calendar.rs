@@ -73,7 +73,7 @@ pub fn Calendar() -> impl IntoView {
     );
 
     view! {
-        <div node_ref=e class="relative flex flex-col h-dvh w-dvw overflow-y-scroll">
+        <div node_ref=e class="pt-16 z-0 relative flex flex-col h-dvh w-dvw overflow-y-scroll">
             <div node_ref=e2 class="relative flex-shrink-0">
                 // foreground -- calendar events
                 // ** time() without move || is intentional. Only want it once per load
