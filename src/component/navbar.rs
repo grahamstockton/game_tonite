@@ -8,7 +8,6 @@ pub fn NavBar() -> impl IntoView {
         "cupcake",
         "synthwave",
         "valentine",
-        "lofi",
         "business",
         "caramellatte",
         "walkingspace",

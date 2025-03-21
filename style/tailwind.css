@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-    themes: retro --default, dracula --prefersdark, cupcake, synthwave, valentine, lofi, business, caramellatte;
+    themes: retro --default, dracula --prefersdark, cupcake, synthwave, valentine, business, caramellatte;
 }
 
 @plugin "daisyui/theme" {
