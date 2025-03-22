@@ -5,15 +5,18 @@ use leptos_use::{
     UseScrollReturn, UseWindowSizeReturn,
 };
 
-use crate::component::{
-    calendar_events::CalendarEvents,
-    hour_grid::HourGrid,
-    time_overlay::TimeOverlay,
-    time_util::{calculate_timebar_bottom, create_baseline, get_local_time},
+use crate::{
+    component::{
+        calendar_events::CalendarEvents,
+        hour_grid::HourGrid,
+        time_overlay::TimeOverlay,
+        time_util::{calculate_timebar_bottom, create_baseline, get_local_time},
+    },
+    obf_util::UrlParams,
 };
 
 #[component]
-pub fn Calendar() -> impl IntoView {
+pub fn Calendar(url_params: UrlParams) -> impl IntoView {
     // some constants to do with displaying calendar
     const STARTING_HOUR_OFFSET: usize = 6;
     const HORIZONTAL_LINE_OFFSET: &str = "1.25rem";
@@ -77,7 +80,7 @@ pub fn Calendar() -> impl IntoView {
             <div node_ref=e2 class="relative flex-shrink-0">
                 // foreground -- calendar events
                 // ** time() without move || is intentional. Only want it once per load
-                <CalendarEvents baseline={baseline} offset={STARTING_HOUR_OFFSET}/>
+                <CalendarEvents url_params={url_params} baseline={baseline} offset={STARTING_HOUR_OFFSET}/>
 
                 // background -- hour grid
                 <HourGrid offset={STARTING_HOUR_OFFSET}/>

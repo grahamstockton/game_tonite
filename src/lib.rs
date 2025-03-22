@@ -1,6 +1,7 @@
 pub mod app;
 mod component;
 pub mod dao;
+mod obf_util;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

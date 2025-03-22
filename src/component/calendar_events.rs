@@ -4,10 +4,13 @@ use chrono::{DateTime, Duration, FixedOffset, Utc};
 use futures::future::join_all;
 use leptos::{logging::log, prelude::*};
 
-use crate::component::{
-    event_card::EventCard,
-    model::{Game, User},
-    time_util::get_events_stacking,
+use crate::{
+    component::{
+        event_card::EventCard,
+        model::{Game, User},
+        time_util::get_events_stacking,
+    },
+    obf_util::UrlParams,
 };
 
 use super::model::GamingSession;
@@ -17,6 +20,7 @@ use super::model::GamingSession;
  */
 #[component]
 pub fn CalendarEvents(
+    url_params: UrlParams,
     baseline: ReadSignal<Option<DateTime<FixedOffset>>>,
     offset: usize,
 ) -> impl IntoView {
@@ -31,7 +35,7 @@ pub fn CalendarEvents(
             let window_end = baseline_date() + Duration::hours(24 + offset as i64);
             view! {
                 <Await
-                    future=get_events("PLACEHOLDER".to_string(), window_start, window_end)
+                    future=get_events(url_params.get_server_id(), window_start, window_end)
                     let:res
                 >
                     {
