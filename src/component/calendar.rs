@@ -26,6 +26,7 @@ pub fn Calendar(url_params: UrlParams) -> impl IntoView {
     let (time, set_time) =
         signal::<DateTime<FixedOffset>>(DateTime::from_timestamp(0, 0).unwrap().fixed_offset());
     let (timebar_bottom, set_timebar_bottom) = signal(0.);
+    let (has_scrolled, set_has_scrolled) = signal(0);
 
     // client side baseline time. Updated only once
     let (baseline, set_baseline) = signal::<Option<DateTime<FixedOffset>>>(None);
@@ -43,24 +44,32 @@ pub fn Calendar(url_params: UrlParams) -> impl IntoView {
     // On render (client side) update time via effect.
     // Unfortunately, `use_interval_fn_with_options` initializes before the component renders
     // so this is necessary.
+    Effect::new(move |_| {
+        // set time locally
+        let t = get_local_time();
+        set_time(t);
+
+        // set current time bar locally
+        let tb = calculate_timebar_bottom(t, STARTING_HOUR_OFFSET);
+        set_timebar_bottom(tb);
+
+        // set baseline
+        set_baseline(create_baseline(t, STARTING_HOUR_OFFSET).ok());
+    });
+
+    // Weird artifact of rendering, heigh begins at 0 and then is set to viewport height
+    // Therefore, need this to run twice. Don't want it to run more though, so limit at 2.
     Effect::watch(
         move || height(),
         move |h, _, _| {
-            // set time locally
-            let t = get_local_time();
-            set_time(t);
-
-            // set current time bar locally
-            let tb = calculate_timebar_bottom(t, STARTING_HOUR_OFFSET);
-            set_timebar_bottom(tb);
-
-            // set baseline
-            set_baseline(create_baseline(t, STARTING_HOUR_OFFSET).ok());
-
             // set screen scroll position
-            let sy =
-                move || (100. - tb) / 100. * h - SCROLL_OFFSET_PCT * window_height.get_untracked();
-            set_y(sy());
+            if has_scrolled() < 2 {
+                let sy = move || {
+                    (100. - timebar_bottom()) / 100. * h - SCROLL_OFFSET_PCT * window_height()
+                };
+                set_y(sy());
+                *set_has_scrolled.write() += 1;
+            }
         },
         false,
     );
