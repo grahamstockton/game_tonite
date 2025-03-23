@@ -32,6 +32,7 @@ js-sys = "0.3.77"
 leptos-use = "0.15.5"
 futures = "0.3.31"
 base64 = "0.22.1"
+reactive_stores = "0.1.8"
 
 [features]
 hydrate = ["leptos/hydrate"]

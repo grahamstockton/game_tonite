@@ -1,21 +1,24 @@
-use crate::component::calendar::Calendar;
 use crate::component::modal::new_event_modal::NewEventModal;
 use crate::component::navbar::NavBar;
+use crate::component::{calendar::Calendar, model::GamingSession};
 use crate::obf_util::UrlParams;
 use leptos::either::Either;
 use leptos::prelude::*;
-use leptos::Params;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
     components::{Route, Router, Routes},
     hooks::use_params_map,
-    params::Params,
     path, StaticSegment,
 };
+use reactive_stores::Store;
+use serde::{Deserialize, Serialize};
 
-#[derive(Params, PartialEq, Debug)]
-struct SessionParams {
-    group_id: String,
+#[derive(Clone, Debug, Default, Store, Serialize, Deserialize)]
+pub struct GlobalState {
+    pub url_params: UrlParams,
+    #[store(key: i64 = |s| s.session_id.clone())]
+    pub calendar_events: Vec<GamingSession>,
+    pub offset: usize,
 }
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
@@ -64,6 +67,8 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
+    const OFFSET_SIZE: usize = 6;
+
     // parse params from url
     let params = use_params_map();
     let url_params = UrlParams::decode_url(params.read().get("id").unwrap_or_default());
@@ -73,15 +78,20 @@ fn HomePage() -> impl IntoView {
         {
             match url_params {
                 Ok(params) => {
+                    provide_context(Store::new(GlobalState {
+                        url_params: params,
+                        calendar_events: vec![],
+                        offset: OFFSET_SIZE,
+                    }));
                     Either::Left(view! {
                         <div class="relative z-4">
                             <NavBar />
                         </div>
                         <div class="relative z-0">
-                            <Calendar url_params={params.clone()} />
+                            <Calendar />
                         </div>
                         <div class="relative z-4">
-                            <NewEventModal url_params={params} />
+                            <NewEventModal />
                         </div>
                     })
                 },

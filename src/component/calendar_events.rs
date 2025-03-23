@@ -3,14 +3,15 @@ use std::sync::Arc;
 use chrono::{DateTime, Duration, FixedOffset, Utc};
 use futures::future::join_all;
 use leptos::{logging::log, prelude::*};
+use reactive_stores::Store;
 
 use crate::{
+    app::{GlobalState, GlobalStateStoreFields},
     component::{
         event_card::EventCard,
         model::{Game, User},
         time_util::get_events_stacking,
     },
-    obf_util::UrlParams,
 };
 
 use super::model::GamingSession;
@@ -20,11 +21,13 @@ use super::model::GamingSession;
  */
 #[component]
 pub fn CalendarEvents(
-    url_params: UrlParams,
     baseline: ReadSignal<Option<DateTime<FixedOffset>>>,
     offset: usize,
 ) -> impl IntoView {
-    let (calendar_events, set_calendar_events) = signal::<Vec<GamingSession>>(vec![]);
+    let state = expect_context::<Store<GlobalState>>();
+    let url_params = state.url_params().get_untracked().get_server_id();
+    let calendar_events = state.calendar_events();
+    let events = move || calendar_events.get();
 
     view! {
         <Show
@@ -37,30 +40,35 @@ pub fn CalendarEvents(
             let window_end = baseline_date() + Duration::hours(24 + offset as i64);
             view! {
                 <Await
-                    future=get_events(url_params.get_server_id(), window_start, window_end)
+                    future=get_events(url_params.clone(), window_start, window_end)
                     let:res
                 >
                     {
                         // if successful, update events signal
                         if let Ok(v) = res.as_ref() {
-                            set_calendar_events(v.clone());
+                            calendar_events.set(v.clone());
                         }
-                        let events = calendar_events();
-                        let events_stacking = get_events_stacking(&events);
-                        events.iter().map(|r| view! {
-                            <EventCard
-                                title={r.title.clone()}
-                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))}
-                                owner={Arc::new(r.owner.clone())}
-                                participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
-                                suggestions={vec![]}
-                                start_time={r.start_time.fixed_offset()}
-                                end_time={r.end_time.fixed_offset()}
-                                baseline={ baseline_date() }
-                                stacking_col={ events_stacking.get(&r.session_id).unwrap().clone() }
-                                offset={offset}
-                            />
-                        }).collect_view()
+                        let events_stacking = get_events_stacking(&events());
+                        view! {
+                            <For
+                                each=move || calendar_events.get()
+                                key=|s| s.server_id.clone()
+                                let:r
+                            >
+                                <EventCard
+                                    title={r.title.clone()}
+                                    selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))}
+                                    owner={Arc::new(r.owner.clone())}
+                                    participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
+                                    suggestions={vec![]}
+                                    start_time={r.start_time.fixed_offset()}
+                                    end_time={r.end_time.fixed_offset()}
+                                    baseline={ baseline_date() }
+                                    stacking_col={ events_stacking.get(&r.session_id).unwrap().clone() }
+                                    offset={offset}
+                                />
+                            </For>
+                        }
                     }
                 </Await>
             }

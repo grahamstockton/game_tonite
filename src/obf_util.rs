@@ -1,7 +1,9 @@
 use anyhow::{Context, Result};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
+use reactive_stores::Store;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Store, Serialize, Deserialize, Default)]
 pub struct UrlParams {
     server_id: String,
     user_id: String,

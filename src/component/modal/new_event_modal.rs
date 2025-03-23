@@ -1,9 +1,10 @@
 use leptos::prelude::*;
 
-use crate::obf_util::UrlParams;
-
+/**
+ * Modal form to create a new event
+ */
 #[component]
-pub fn NewEventModal(url_params: UrlParams) -> impl IntoView {
+pub fn NewEventModal() -> impl IntoView {
     view! {
         <div class="absolute bottom-5 right-5">
             <button class="btn btn-xl btn-circle btn-secondary" onclick="my_modal_1.showModal()">
