@@ -74,7 +74,7 @@ pub fn CalendarEvents(
             }
         }
         </Show>
-    }
+    }.into_any()
 }
 
 #[server]

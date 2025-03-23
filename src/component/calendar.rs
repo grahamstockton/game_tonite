@@ -59,9 +59,10 @@ pub fn Calendar() -> impl IntoView {
         move || height(),
         move |h, _, _| {
             // set screen scroll position
-            if has_scrolled() < 2 {
+            if has_scrolled.get_untracked() < 2 {
                 let sy = move || {
-                    (100. - timebar_bottom()) / 100. * h - SCROLL_OFFSET_PCT * window_height()
+                    (100. - timebar_bottom.get_untracked()) / 100. * h
+                        - SCROLL_OFFSET_PCT * window_height.get_untracked()
                 };
                 set_y(sy());
                 *set_has_scrolled.write() += 1;
@@ -95,4 +96,5 @@ pub fn Calendar() -> impl IntoView {
             </div>
         </div>
     }
+    .into_any()
 }

@@ -71,7 +71,7 @@ fn HomePage() -> impl IntoView {
 
     // parse params from url
     let params = use_params_map();
-    let url_params = UrlParams::decode_url(params.read().get("id").unwrap_or_default());
+    let url_params = UrlParams::decode_url(params.read_untracked().get("id").unwrap_or_default());
 
     view! {
         <div class="relative">

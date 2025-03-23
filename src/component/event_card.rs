@@ -87,7 +87,7 @@ pub fn EventCard(
                 </div>
             </div>
         </div>
-    }
+    }.into_any()
 }
 
 fn get_url() -> String {
