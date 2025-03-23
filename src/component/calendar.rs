@@ -40,7 +40,7 @@ pub fn Calendar() -> impl IntoView {
     // On render (client side) update time via effect.
     // Unfortunately, `use_interval_fn_with_options` initializes before the component renders
     // so this is necessary.
-    Effect::new(move |_| {
+    Effect::new(move || {
         // set time locally
         let t = get_local_time();
         set_time(t);

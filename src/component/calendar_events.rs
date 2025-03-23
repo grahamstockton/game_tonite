@@ -96,21 +96,29 @@ async fn get_events(
     let a: Vec<_> = sessions
         .iter()
         .map(|s| async {
-            let participants = client.get_session_users(s.session_id).await.unwrap();
-            let owner_record = participants
-                .iter()
-                .find(|r| s.owner == r.user_id)
-                .expect("no owner found for session");
+            let session_id = s.session_id.unwrap();
+            let participants = client.get_session_users(session_id).await.unwrap();
+            /*let owner_record = participants
+            .iter()
+            .find(|r| s.owner == r.user_id)
+            .unwrap_or(&UserRecord {
+                session_id: 1,
+                user_id: "bobbo".to_string(),
+                user_photo: "photo".to_string(),
+            });*/
 
             GamingSession {
                 server_id: s.server_id.clone(),
-                session_id: s.session_id,
+                session_id: session_id,
                 title: s.title.clone(),
                 start_time: DateTime::parse_from_rfc3339(&s.start_time)
                     .unwrap()
                     .to_utc(),
                 end_time: DateTime::parse_from_rfc3339(&s.end_time).unwrap().to_utc(),
-                owner: User::from(owner_record),
+                owner: User {
+                    name: "bobert".to_string(),
+                    picture: "alabama".to_string(),
+                },
                 participants: participants.iter().map(User::from).collect(),
             }
         })

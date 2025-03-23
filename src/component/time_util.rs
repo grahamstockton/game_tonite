@@ -63,6 +63,25 @@ pub fn create_baseline(
 }
 
 /**
+ * Converts a simple html time (XX:XX) to a timestamp by comparing with baseline and offset
+ */
+pub fn convert_simple_time(
+    time: String,
+    baseline: DateTime<FixedOffset>,
+    offset: usize,
+) -> DateTime<FixedOffset> {
+    let mut split_time = time.split(":");
+    let hours = split_time.next().unwrap().parse::<i32>().unwrap() as i64;
+    let minutes = split_time.next().unwrap().parse::<i32>().unwrap() as i64;
+
+    if hours as usize >= offset {
+        baseline + Duration::minutes(60 * hours + minutes)
+    } else {
+        baseline + Duration::days(86400 + 60 * hours + minutes)
+    }
+}
+
+/**
  * Stack elements in horizontal space so they don't overlap
  * Returns a HashMap of session_id to positioning. Positioning starts at 0.
  */

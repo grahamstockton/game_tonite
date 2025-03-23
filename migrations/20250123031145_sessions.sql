@@ -1,6 +1,6 @@
 PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS sessions (
-            session_id INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL,
+            session_id INTEGER PRIMARY KEY AUTOINCREMENT,
             server_id VARCHAR(250) NOT NULL,
             title VARCHAR(250) NOT NULL,
             start_time VARCHAR(250) NOT NULL,

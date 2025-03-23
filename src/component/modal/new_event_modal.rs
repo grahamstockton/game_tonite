@@ -1,12 +1,34 @@
+use anyhow::Context;
+use chrono::{DateTime, FixedOffset, Utc};
 use leptos::{html::Dialog, logging::log, prelude::*};
+use reactive_stores::Store;
+
+use crate::{
+    app::{GlobalState, GlobalStateStoreFields},
+    component::time_util::{convert_simple_time, create_baseline, get_local_time},
+    obf_util::UrlParamsStoreFields,
+};
 
 /**
  * Modal form to create a new event
  */
 #[component]
 pub fn NewEventModal() -> impl IntoView {
+    let state = expect_context::<Store<GlobalState>>();
+    let server_id = state.url_params().server_id().get_untracked();
+    let user_id = state.url_params().user_id().get_untracked();
+
     let e = NodeRef::<Dialog>::new();
     let (error_status, set_error_status) = signal(false);
+
+    // current time for timestamp
+    let (local_time, set_local_time) =
+        signal::<DateTime<FixedOffset>>(DateTime::from_timestamp(0, 0).unwrap().fixed_offset());
+    Effect::new(move || {
+        // set time locally
+        let t = get_local_time();
+        set_local_time(t);
+    });
 
     // handle ActionForm
     let create_event = ServerAction::<CreateEvent>::new();
@@ -16,7 +38,8 @@ pub fn NewEventModal() -> impl IntoView {
             set_error_status(false);
             e.get().unwrap().close()
         }
-        Some(Err(_)) => {
+        Some(Err(e)) => {
+            log!("{:?}", e);
             set_error_status(true);
         }
         None => {}
@@ -40,6 +63,14 @@ pub fn NewEventModal() -> impl IntoView {
                         </form>
                     </div>
                     <ActionForm action=create_event>
+                        // hidden vars for action form -- will change if there is a better fix
+                        <input type="text" class="hidden invisible" name="server_id" value={server_id}/>
+                        <input type="text" class="hidden invisible" name="user_id" value={user_id.clone()}/>
+                        <input type="text" class="hidden invisible" name="owner" value={user_id}/>
+                        <input type="text" class="hidden invisible" name="picture" value={"placeholder"}/>
+                        <input type="text" class="hidden invisible" name="baseline_time" value={move || local_time().to_rfc3339()} />
+                        <input type="text" class="hidden invisible" name="offset" value={state.offset().get_untracked()} />
+                        <input type="text" class="hidden invisible" name="is_selected" value="false"/>
                         <fieldset class="fieldset w-full bg-base-200 border border-base-300 p-4 rounded-box">
                             {
                                 move || if error_status() {
@@ -75,8 +106,58 @@ pub fn NewEventModal() -> impl IntoView {
     }
 }
 
+// TODO: How do I pass in additional things to this fn that aren't just from the forms
 #[server]
-pub async fn create_event(title: String, start: String, end: String) -> Result<(), ServerFnError> {
-    log!("{} {} {}", title, start, end);
-    Ok(())
+pub async fn create_event(
+    title: String,
+    start: String,
+    end: String,
+    server_id: String,
+    user_id: String,
+    owner: String,
+    picture: String,
+    baseline_time: String,
+    offset: String,
+    is_selected: String,
+) -> Result<(), ServerFnError> {
+    use crate::dao::sqlite_util::SqliteClient;
+    // TODO: test this, then use extractors to share an sqlite client across instances
+    let client = SqliteClient::new("sqlite://sessions.db").await;
+    let offset_usize: usize = offset.parse().unwrap();
+    let selected_bool = is_selected == "true";
+
+    log!(
+        "got here: {}{}{}{}{}{}{}{}{}{}",
+        &title,
+        &start,
+        &end,
+        &server_id,
+        &user_id,
+        &owner,
+        &picture,
+        &baseline_time,
+        offset,
+        is_selected
+    );
+
+    let baseline = DateTime::parse_from_rfc3339(&baseline_time)?;
+
+    let adjusted_baseline = create_baseline(baseline, offset_usize)
+        .map_err(|e| ServerFnError::new("failed to adjust baseline"))?;
+    let start_datetime = convert_simple_time(start, adjusted_baseline, offset_usize);
+    let end_datetime = convert_simple_time(end, adjusted_baseline, offset_usize);
+
+    let res = client
+        .create_session(
+            &server_id,
+            &title,
+            &start_datetime.to_rfc3339(),
+            &end_datetime.to_rfc3339(),
+            &owner,
+            selected_bool,
+        )
+        .await
+        .map_err(|e| ServerFnError::new(format!("failed to create session: {}", e)));
+
+    res
 }

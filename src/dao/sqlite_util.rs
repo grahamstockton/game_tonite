@@ -13,7 +13,7 @@ cfg_if::cfg_if! {
 #[cfg(feature = "ssr")]
 #[derive(Clone, FromRow, Debug)]
 pub struct SessionRecord {
-    pub session_id: i64,
+    pub session_id: Option<i64>,
     pub server_id: String,
     pub title: String,
     pub start_time: String,
