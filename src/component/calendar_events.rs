@@ -24,6 +24,8 @@ pub fn CalendarEvents(
     baseline: ReadSignal<Option<DateTime<FixedOffset>>>,
     offset: usize,
 ) -> impl IntoView {
+    let (calendar_events, set_calendar_events) = signal::<Vec<GamingSession>>(vec![]);
+
     view! {
         <Show
             when=move || { baseline().is_some() }
@@ -39,9 +41,12 @@ pub fn CalendarEvents(
                     let:res
                 >
                     {
-                        let empty_vec: Vec<GamingSession> = vec![];
-                        let events = res.as_ref().unwrap_or_else(|_| &empty_vec);
-                        let events_stacking = get_events_stacking(events);
+                        // if successful, update events signal
+                        if let Ok(v) = res.as_ref() {
+                            set_calendar_events(v.clone());
+                        }
+                        let events = calendar_events();
+                        let events_stacking = get_events_stacking(&events);
                         events.iter().map(|r| view! {
                             <EventCard
                                 title={r.title.clone()}
