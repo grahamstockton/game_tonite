@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 
+#[derive(Clone)]
 pub struct UrlParams {
     server_id: String,
     user_id: String,

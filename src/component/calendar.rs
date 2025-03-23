@@ -80,7 +80,7 @@ pub fn Calendar(url_params: UrlParams) -> impl IntoView {
             <div node_ref=e2 class="relative flex-shrink-0">
                 // foreground -- calendar events
                 // ** time() without move || is intentional. Only want it once per load
-                <CalendarEvents url_params={url_params} baseline={baseline} offset={STARTING_HOUR_OFFSET}/>
+                <CalendarEvents url_params={url_params.clone()} baseline={baseline} offset={STARTING_HOUR_OFFSET}/>
 
                 // background -- hour grid
                 <HourGrid offset={STARTING_HOUR_OFFSET}/>

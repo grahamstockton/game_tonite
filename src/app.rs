@@ -1,4 +1,5 @@
 use crate::component::calendar::Calendar;
+use crate::component::modal::new_event_modal::NewEventModal;
 use crate::component::navbar::NavBar;
 use crate::obf_util::UrlParams;
 use leptos::either::Either;
@@ -77,7 +78,10 @@ fn HomePage() -> impl IntoView {
                             <NavBar />
                         </div>
                         <div class="relative z-0">
-                            <Calendar url_params={params} />
+                            <Calendar url_params={params.clone()} />
+                        </div>
+                        <div class="relative z-4">
+                            <NewEventModal url_params={params} />
                         </div>
                     })
                 },
