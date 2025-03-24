@@ -66,7 +66,7 @@ pub fn EventCard(
                         }
                         <div class="avatar avatar-placeholder border-primary border-2">
                             <div class="bg-neutral text-neutral-content w-8">
-                                <span>{ format!("+{}", participants.len()) }</span>
+                                <span>{ format!("+{}", participants.len() - 1) }</span>
                             </div>
                         </div>
                     </div>

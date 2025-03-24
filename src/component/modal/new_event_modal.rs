@@ -147,7 +147,7 @@ pub async fn create_event(
     let start_datetime = convert_simple_time(start, adjusted_baseline, offset_usize);
     let end_datetime = convert_simple_time(end, adjusted_baseline, offset_usize);
 
-    let res = client
+    let session_record = client
         .create_session(
             &server_id,
             &title,
@@ -157,7 +157,10 @@ pub async fn create_event(
             selected_bool,
         )
         .await
-        .map_err(|e| ServerFnError::new(format!("failed to create session: {}", e)));
+        .map_err(|e| ServerFnError::new(format!("failed to create session: {}", e)))?;
+    let user_result = client
+        .create_session_user(&user_id, session_record.session_id.unwrap(), &picture)
+        .await;
 
-    res
+    user_result.map_err(|e| ServerFnError::new(format!("failed to create session: {}", e)))
 }

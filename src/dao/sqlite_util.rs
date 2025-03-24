@@ -62,17 +62,21 @@ impl SqliteClient {
         end_time: &str,
         owner: &str,
         is_selected: bool,
-    ) -> Result<()> {
-        let _ = sqlx::query!("INSERT INTO sessions (server_id, title, start_time, end_time, owner, is_selected) VALUES (?, ?, ?, ?, ?, ?)",
+    ) -> Result<SessionRecord> {
+        let record = sqlx::query_as!(SessionRecord,
+            "INSERT INTO sessions (server_id, title, start_time, end_time, owner, is_selected) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
             server_id,
             title,
             start_time,
             end_time,
             owner,
             is_selected
-        ).execute(&self.client).await?;
+        ).fetch_optional(&self.client).await;
 
-        Ok(())
+        match record {
+            Ok(o) => Ok(o.unwrap()),
+            Err(e) => Err(e.into()),
+        }
     }
 
     // session table -- READ multiple
