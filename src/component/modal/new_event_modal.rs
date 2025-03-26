@@ -39,7 +39,6 @@ pub fn NewEventModal() -> impl IntoView {
     Effect::new(move || match server_res() {
         Some(Ok(s)) => {
             calendar_events.update(|v| v.push(s));
-            log!("{:?}", calendar_events);
             e.get().unwrap().close();
             set_error_status(false);
         }
