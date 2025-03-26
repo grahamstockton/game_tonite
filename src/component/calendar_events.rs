@@ -27,7 +27,7 @@ pub fn CalendarEvents(
     let state = expect_context::<Store<GlobalState>>();
     let url_params = state.url_params().get_untracked().get_server_id();
     let calendar_events = state.calendar_events();
-    let events = move || calendar_events.get();
+    let events_stacking = move || get_events_stacking(&calendar_events.get());
 
     view! {
         <Show
@@ -48,28 +48,21 @@ pub fn CalendarEvents(
                         if let Ok(v) = res.as_ref() {
                             calendar_events.set(v.clone());
                         }
-                        let events_stacking = get_events_stacking(&events());
-                        view! {
-                            <For
-                                each=move || calendar_events.get()
-                                key=|s| s.server_id.clone()
-                                let:r
-                            >
-                                <EventCard
-                                    title={r.title.clone()}
-                                    selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))}
-                                    owner={Arc::new(r.owner.clone())}
-                                    participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
-                                    suggestions={vec![]}
-                                    start_time={r.start_time.fixed_offset()}
-                                    end_time={r.end_time.fixed_offset()}
-                                    baseline={ baseline_date() }
-                                    stacking_col={ events_stacking.get(&r.session_id).unwrap().clone() }
-                                    session_id={r.session_id.clone()}
-                                    offset={offset}
-                                />
-                            </For>
-                        }
+                        move || calendar_events.get().iter().map(|r| view! {
+                            <EventCard
+                                title={r.title.clone()}
+                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))}
+                                owner={Arc::new(r.owner.clone())}
+                                participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
+                                suggestions={vec![]}
+                                start_time={r.start_time.fixed_offset()}
+                                end_time={r.end_time.fixed_offset()}
+                                baseline={ baseline_date() }
+                                stacking_col={ events_stacking().get(&r.session_id).unwrap().clone() }
+                                session_id={r.session_id.clone()}
+                                offset={offset}
+                            />
+                        }).collect_view()
                     }
                 </Await>
             }

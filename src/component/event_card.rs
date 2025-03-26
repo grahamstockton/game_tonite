@@ -39,6 +39,7 @@ pub fn EventCard(
                         <DeleteEventModal session_id={session_id} owner_id={owner.get_name()}/>
                     </div>
                     <h2 class="text-xl font-bold">{ title }</h2>
+                    <h2>{ session_id }</h2>
                     // game title if game selected
                     {
                         selected_game.map(|g| view!{

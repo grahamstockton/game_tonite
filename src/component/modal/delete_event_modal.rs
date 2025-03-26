@@ -14,8 +14,10 @@ pub fn DeleteEventModal(session_id: i64, owner_id: String) -> impl IntoView {
     let modal_name = format!("modal_{}", session_id);
 
     // noderef and error signal (window)
-    let e = NodeRef::<Dialog>::new();
     let (error_status, set_error_status) = signal(false);
+
+    // sometimes modals replace each other upon deletion
+    let e = NodeRef::<Dialog>::new();
 
     // handle ActionForm
     let delete_event = ServerAction::<DeleteEvent>::new();
@@ -25,6 +27,7 @@ pub fn DeleteEventModal(session_id: i64, owner_id: String) -> impl IntoView {
             calendar_events.update(|v| {
                 v.retain(|i| i.session_id != session_id);
             });
+            e.get().unwrap().close();
         }
         Some(Err(e)) => {
             set_error_status(true);
@@ -33,10 +36,11 @@ pub fn DeleteEventModal(session_id: i64, owner_id: String) -> impl IntoView {
         None => {}
     });
 
+    // only show if user owns event
     if user_id == owner_id {
         view! {
             <button type="button" onclick={format!("{}.showModal()", modal_name)} class="btn btn-sm btn-circle btn-ghost">{"✕"}</button>
-            <dialog id={modal_name} class="modal">
+            <dialog node_ref=e id={modal_name} class="modal">
             <div class="modal-box">
                 <div class="flex">
                     <h3 class="text-lg flex-1 font-bold">Are you sure?</h3>

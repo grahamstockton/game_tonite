@@ -1,4 +1,5 @@
 use chrono::Utc;
+use reactive_stores::Store;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "ssr")]
@@ -30,7 +31,7 @@ impl From<&UserRecord> for User {
     }
 }
 
-#[derive(Clone, Serialize, Debug, Deserialize)]
+#[derive(Clone, Serialize, Debug, Store, Deserialize)]
 pub struct GamingSession {
     pub server_id: String,
     pub session_id: i64,

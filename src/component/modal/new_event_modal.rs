@@ -1,11 +1,13 @@
-use anyhow::Context;
-use chrono::{DateTime, FixedOffset, Utc};
+use chrono::{DateTime, FixedOffset};
 use leptos::{html::Dialog, logging::log, prelude::*};
 use reactive_stores::Store;
 
 use crate::{
     app::{GlobalState, GlobalStateStoreFields},
-    component::time_util::{convert_simple_time, create_baseline, get_local_time},
+    component::{
+        model::{GamingSession, User},
+        time_util::{convert_simple_time, create_baseline, get_local_time},
+    },
     obf_util::UrlParamsStoreFields,
 };
 
@@ -17,6 +19,7 @@ pub fn NewEventModal() -> impl IntoView {
     let state = expect_context::<Store<GlobalState>>();
     let server_id = state.url_params().server_id().get_untracked();
     let user_id = state.url_params().user_id().get_untracked();
+    let calendar_events = state.calendar_events();
 
     let e = NodeRef::<Dialog>::new();
     let (error_status, set_error_status) = signal(false);
@@ -34,9 +37,11 @@ pub fn NewEventModal() -> impl IntoView {
     let create_event = ServerAction::<CreateEvent>::new();
     let server_res = create_event.value();
     Effect::new(move || match server_res() {
-        Some(Ok(())) => {
-            set_error_status(false);
+        Some(Ok(s)) => {
+            calendar_events.update(|v| v.push(s));
+            log!("{:?}", calendar_events);
             e.get().unwrap().close();
+            set_error_status(false);
         }
         Some(Err(e)) => {
             log!("{:?}", e);
@@ -119,26 +124,12 @@ pub async fn create_event(
     baseline_time: String,
     offset: String,
     is_selected: String,
-) -> Result<(), ServerFnError> {
+) -> Result<GamingSession, ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
     // TODO: test this, then use extractors to share an sqlite client across instances
     let client = SqliteClient::new("sqlite://sessions.db").await;
     let offset_usize: usize = offset.parse().unwrap();
     let selected_bool = is_selected == "true";
-
-    log!(
-        "got here: {}{}{}{}{}{}{}{}{}{}",
-        &title,
-        &start,
-        &end,
-        &server_id,
-        &user_id,
-        &owner,
-        &picture,
-        &baseline_time,
-        offset,
-        is_selected
-    );
 
     let baseline = DateTime::parse_from_rfc3339(&baseline_time)?;
 
@@ -158,9 +149,30 @@ pub async fn create_event(
         )
         .await
         .map_err(|e| ServerFnError::new(format!("failed to create session: {}", e)))?;
+    let session_id = session_record.session_id.unwrap();
     let user_result = client
-        .create_session_user(&user_id, session_record.session_id.unwrap(), &picture)
+        .create_session_user(&user_id, session_id, &picture)
         .await;
 
-    user_result.map_err(|e| ServerFnError::new(format!("failed to create session: {}", e)))
+    match user_result {
+        Ok(_) => {
+            let user = User {
+                name: user_id,
+                picture: picture,
+            };
+            Ok(GamingSession {
+                server_id: server_id,
+                session_id: session_id,
+                title: title,
+                start_time: start_datetime.to_utc(),
+                end_time: end_datetime.to_utc(),
+                owner: user.clone(),
+                participants: vec![user],
+            })
+        }
+        Err(e) => Err(ServerFnError::new(format!(
+            "failed to create session: {}",
+            e
+        ))),
+    }
 }
