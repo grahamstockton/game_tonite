@@ -65,6 +65,7 @@ pub fn CalendarEvents(
                                     end_time={r.end_time.fixed_offset()}
                                     baseline={ baseline_date() }
                                     stacking_col={ events_stacking.get(&r.session_id).unwrap().clone() }
+                                    session_id={r.session_id.clone()}
                                     offset={offset}
                                 />
                             </For>
