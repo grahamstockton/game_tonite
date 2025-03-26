@@ -25,8 +25,6 @@ pub fn DeleteEventModal(session_id: i64, owner_id: String) -> impl IntoView {
             calendar_events.update(|v| {
                 v.retain(|i| i.session_id != session_id);
             });
-            e.get().unwrap().close();
-            set_error_status(false);
         }
         Some(Err(e)) => {
             set_error_status(true);
@@ -60,6 +58,7 @@ pub fn DeleteEventModal(session_id: i64, owner_id: String) -> impl IntoView {
                 }
                 <div class="modal-action">
                     <ActionForm action=delete_event>
+                        <input type="text" class="hidden invisible" name="session_id" value={session_id}/>
                         <button class="btn btn-error">Delete</button>
                     </ActionForm>
                 </div>

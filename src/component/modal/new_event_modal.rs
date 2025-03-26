@@ -36,7 +36,7 @@ pub fn NewEventModal() -> impl IntoView {
     Effect::new(move || match server_res() {
         Some(Ok(())) => {
             set_error_status(false);
-            e.get().unwrap().close()
+            e.get().unwrap().close();
         }
         Some(Err(e)) => {
             log!("{:?}", e);
