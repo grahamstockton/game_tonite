@@ -20,7 +20,7 @@ pub struct SessionRecord {
     pub start_time: String,
     pub end_time: String,
     pub owner: String,
-    pub is_selected: bool,
+    pub game: Option<String>,
 }
 
 #[cfg(feature = "ssr")]
@@ -62,16 +62,16 @@ impl SqliteClient {
         start_time: &str,
         end_time: &str,
         owner: &str,
-        is_selected: bool,
+        game: Option<String>,
     ) -> Result<SessionRecord> {
         let record = sqlx::query_as!(SessionRecord,
-            "INSERT INTO sessions (server_id, title, start_time, end_time, owner, is_selected) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
+            "INSERT INTO sessions (server_id, title, start_time, end_time, owner, game) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
             server_id,
             title,
             start_time,
             end_time,
             owner,
-            is_selected
+            game
         ).fetch_optional(&self.client).await;
 
         match record {
@@ -167,57 +167,6 @@ impl SqliteClient {
             "DELETE FROM users WHERE session_id=? AND user_id=?",
             session_id,
             user_id
-        )
-        .execute(&self.client)
-        .await?;
-
-        Ok(())
-    }
-
-    // preference table -- CREATE
-    pub async fn create_game_preference_record(
-        &self,
-        user_id: &str,
-        session_id: i64,
-        suggested_game: &str,
-        is_selected: bool,
-    ) -> Result<()> {
-        let _ = sqlx::query!("INSERT INTO preferences (user_id, session_id, suggested_game, is_selected) VALUES (?, ?, ?, ?)",
-            user_id,
-            session_id,
-            suggested_game,
-            is_selected,
-        ).execute(&self.client).await?;
-
-        Ok(())
-    }
-
-    // preference table -- READ
-    pub async fn get_game_preference_records(
-        &self,
-        user_id: &str,
-        session_id: i64,
-    ) -> Result<Vec<GamePreferenceRecord>> {
-        Ok(sqlx::query_as!(
-            GamePreferenceRecord,
-            "SELECT * FROM preferences WHERE user_id=? AND session_id=?",
-            user_id,
-            session_id
-        )
-        .fetch_all(&self.client)
-        .await?)
-    }
-
-    // preference table -- DELETE
-    pub async fn delete_game_preference_record(
-        &self,
-        user_id: &str,
-        session_id: i64,
-    ) -> Result<()> {
-        let _ = sqlx::query!(
-            "DELETE FROM preferences WHERE user_id=? AND session_id=?",
-            user_id,
-            session_id
         )
         .execute(&self.client)
         .await?;

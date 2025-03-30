@@ -149,6 +149,7 @@ mod tests {
         session_id_3: i64,
         title: String,
         owner: User,
+        game: Option<String>,
         participants: Vec<User>,
     }
 
@@ -176,6 +177,7 @@ mod tests {
                     name: "username".to_string(),
                     picture: "picture".to_string(),
                 },
+                game: Some("game".to_string()),
                 participants: vec![],
             }
         }
@@ -195,6 +197,7 @@ mod tests {
             end_time: end_time.clone(),
             owner: setup.owner,
             participants: setup.participants,
+            game: setup.game,
         }
     }
 

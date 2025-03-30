@@ -12,6 +12,7 @@ use crate::{
         model::{Game, User},
         time_util::get_events_stacking,
     },
+    obf_util::UrlParamsStoreFields,
 };
 
 use super::model::GamingSession;
@@ -24,9 +25,13 @@ pub fn CalendarEvents(
     baseline: ReadSignal<Option<DateTime<FixedOffset>>>,
     offset: usize,
 ) -> impl IntoView {
+    // unpack state
     let state = expect_context::<Store<GlobalState>>();
-    let url_params = state.url_params().get_untracked().get_server_id();
+    let server_id = state.url_params().server_id().get_untracked();
+    let user_id = move || state.url_params().user_id().get_untracked();
     let calendar_events = state.calendar_events();
+
+    // create stacking for display
     let events_stacking = move || get_events_stacking(&calendar_events.get());
 
     view! {
@@ -40,7 +45,7 @@ pub fn CalendarEvents(
             let window_end = baseline_date() + Duration::hours(24 + offset as i64);
             view! {
                 <Await
-                    future=get_events(url_params.clone(), window_start, window_end)
+                    future=get_events(server_id.clone(), window_start, window_end)
                     let:res
                 >
                     {
@@ -51,15 +56,15 @@ pub fn CalendarEvents(
                         move || calendar_events.get().iter().map(|r| view! {
                             <EventCard
                                 title={r.title.clone()}
-                                selected_game={Some(Arc::new(Game { title: "placeholder".to_string(), cover_url: "url".to_string()}))}
                                 owner={Arc::new(r.owner.clone())}
                                 participants={r.participants.iter().map(|i| Arc::new(i.clone())).collect()}
-                                suggestions={vec![]}
                                 start_time={r.start_time.fixed_offset()}
                                 end_time={r.end_time.fixed_offset()}
                                 baseline={ baseline_date() }
                                 stacking_col={ events_stacking().get(&r.session_id).unwrap().clone() }
                                 session_id={r.session_id.clone()}
+                                game={r.game.clone()}
+                                user_id={user_id()}
                                 offset={offset}
                             />
                         }).collect_view()
@@ -107,6 +112,7 @@ async fn get_events(
                 end_time: DateTime::parse_from_rfc3339(&s.end_time).unwrap().to_utc(),
                 owner: User::from(owner_record),
                 participants: participants.iter().map(User::from).collect(),
+                game: s.game.clone(),
             }
         })
         .collect();

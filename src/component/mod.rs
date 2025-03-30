@@ -2,6 +2,7 @@ pub mod calendar;
 mod calendar_events;
 mod event_card;
 mod hour_grid;
+mod join_leave_session_button;
 pub mod modal;
 pub mod model;
 pub mod navbar;

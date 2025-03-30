@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS sessions (
             start_time VARCHAR(250) NOT NULL,
             end_time VARCHAR(250) NOT NULL,
             owner VARCHAR(250) NOT NULL,
-            is_selected BOOL NOT NULL
+            game VARCHAR(250)
 );
 CREATE INDEX idx_server_id
 ON sessions (server_id);
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
                 REFERENCES sessions (session_id)
                 ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS preferences (
+/*CREATE TABLE IF NOT EXISTS preferences (
             id INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL,
             user_id VARCHAR(250) NOT NULL,
             session_id INTEGER NOT NULL,
@@ -30,4 +30,4 @@ CREATE TABLE IF NOT EXISTS preferences (
                 ON DELETE CASCADE
 );
 CREATE INDEX idx_for_preferences
-ON preferences (user_id, session_id);
+ON preferences (user_id, session_id);*/

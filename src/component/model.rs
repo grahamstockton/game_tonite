@@ -40,8 +40,7 @@ pub struct GamingSession {
     pub end_time: chrono::DateTime<Utc>,
     pub owner: User,
     pub participants: Vec<User>,
-    //selected_games: Vec<Game>, // todo: fill game in here
-    //suggested_games: Vec<Game>,
+    pub game: Option<String>,
 }
 
 pub struct Game {

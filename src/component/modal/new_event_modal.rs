@@ -93,13 +93,16 @@ pub fn NewEventModal() -> impl IntoView {
                             <legend class="fieldset-legend">Event</legend>
 
                             <label class="fieldset-label">Title</label>
-                            <input type="text" class="input" placeholder="Title" name="title" />
+                            <input type="text" class="input" placeholder="Title" name="title" maxlength="30" required />
 
                             <label class="fieldset-label">Start Time</label>
-                            <input type="time" class="input" name="start" />
+                            <input type="time" class="input" name="start" required />
 
                             <label class="fieldset-label">End Time</label>
-                            <input type="time" class="input" name="end" />
+                            <input type="time" class="input" name="end" required />
+
+                            <label class="fieldset-label">Game (optional)</label>
+                            <input type="text" class="input" name="game" maxlength="30" />
 
                             <button type="submit" class="btn btn-neutral mt-4">Create</button>
                         </fieldset>
@@ -122,13 +125,17 @@ pub async fn create_event(
     picture: String,
     baseline_time: String,
     offset: String,
-    is_selected: String,
+    game: String,
 ) -> Result<GamingSession, ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
     // TODO: test this, then use extractors to share an sqlite client across instances
     let client = SqliteClient::new("sqlite://sessions.db").await;
     let offset_usize: usize = offset.parse().unwrap();
-    let selected_bool = is_selected == "true";
+    let game_opt = if game.trim().is_empty() {
+        None
+    } else {
+        Some(game)
+    };
 
     let baseline = DateTime::parse_from_rfc3339(&baseline_time)?;
 
@@ -144,7 +151,7 @@ pub async fn create_event(
             &start_datetime.to_rfc3339(),
             &end_datetime.to_rfc3339(),
             &owner,
-            selected_bool,
+            game_opt.clone(),
         )
         .await
         .map_err(|e| ServerFnError::new(format!("failed to create session: {}", e)))?;
@@ -167,6 +174,7 @@ pub async fn create_event(
                 end_time: end_datetime.to_utc(),
                 owner: user.clone(),
                 participants: vec![user],
+                game: game_opt,
             })
         }
         Err(e) => Err(ServerFnError::new(format!(
