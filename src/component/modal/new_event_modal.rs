@@ -74,7 +74,6 @@ pub fn NewEventModal() -> impl IntoView {
                         <input type="text" class="hidden invisible" name="picture" value={"placeholder"}/>
                         <input type="text" class="hidden invisible" name="baseline_time" value={move || local_time().to_rfc3339()} />
                         <input type="text" class="hidden invisible" name="offset" value={state.offset().get_untracked()} />
-                        <input type="text" class="hidden invisible" name="is_selected" value="false"/>
                         <fieldset class="fieldset w-full bg-base-200 border border-base-300 p-4 rounded-box">
                             {
                                 move || if error_status() {
