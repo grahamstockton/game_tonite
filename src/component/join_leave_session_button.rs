@@ -101,8 +101,10 @@ pub fn JoinLeaveSessionButton(session_id: i64) -> impl IntoView {
 #[server]
 pub async fn add_user(user_id: String, session_id: String) -> Result<(), ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
-    // TODO: test this, then use extractors to share an sqlite client across instances
-    let client = SqliteClient::new("sqlite://sessions.db").await;
+    use sqlx::{Pool, Sqlite};
+
+    let pool = use_context::<Pool<Sqlite>>().expect("pool not found");
+    let client = SqliteClient::from_pool(pool).await;
 
     match client
         .create_session_user(&user_id, session_id.parse::<i64>().unwrap(), "placeholder")
@@ -116,8 +118,10 @@ pub async fn add_user(user_id: String, session_id: String) -> Result<(), ServerF
 #[server]
 pub async fn remove_user(user_id: String, session_id: String) -> Result<(), ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
-    // TODO: test this, then use extractors to share an sqlite client across instances
-    let client = SqliteClient::new("sqlite://sessions.db").await;
+    use sqlx::{Pool, Sqlite};
+
+    let pool = use_context::<Pool<Sqlite>>().expect("pool not found");
+    let client = SqliteClient::from_pool(pool).await;
 
     match client
         .delete_session_user(session_id.parse::<i64>().unwrap(), &user_id)

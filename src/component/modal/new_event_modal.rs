@@ -127,8 +127,11 @@ pub async fn create_event(
     game: String,
 ) -> Result<GamingSession, ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
-    // TODO: test this, then use extractors to share an sqlite client across instances
-    let client = SqliteClient::new("sqlite://sessions.db").await;
+    use sqlx::{Pool, Sqlite};
+
+    let pool = use_context::<Pool<Sqlite>>().expect("pool not found");
+    let client = SqliteClient::from_pool(pool).await;
+
     let offset_usize: usize = offset.parse().unwrap();
     let game_opt = if game.trim().is_empty() {
         None

@@ -1,4 +1,18 @@
 #[cfg(feature = "ssr")]
+use axum::extract::FromRef;
+#[cfg(feature = "ssr")]
+use leptos::config::LeptosOptions;
+#[cfg(feature = "ssr")]
+use sqlx::SqlitePool;
+
+#[cfg(feature = "ssr")]
+#[derive(FromRef, Debug, Clone)]
+pub struct AppState {
+    pub leptos_options: LeptosOptions,
+    pub pool: SqlitePool,
+}
+
+#[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     use axum::Router;
@@ -6,6 +20,7 @@ async fn main() {
     use leptos::logging::log;
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
+    use sqlx::sqlite::SqlitePoolOptions;
 
     // load sql client
     //let sql = SqliteClient::new(DB_URL);*/
@@ -15,13 +30,41 @@ async fn main() {
     // Generate the list of routes in your Leptos App
     let routes = generate_route_list(App);
 
+    //setup db pool
+    let pool = SqlitePoolOptions::new()
+        .connect("sqlite://sessions.db")
+        .await
+        .expect("Could not make pool.");
+
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("could not run SQLx migrations");
+
+    let state = AppState {
+        leptos_options: leptos_options,
+        pool: pool,
+    };
+
     let app = Router::new()
-        .leptos_routes(&leptos_options, routes, {
-            let leptos_options = leptos_options.clone();
-            move || shell(leptos_options.clone())
-        })
-        .fallback(leptos_axum::file_and_error_handler(shell))
-        .with_state(leptos_options);
+        .leptos_routes_with_context(
+            &state,
+            routes,
+            {
+                let pool = state.pool.clone();
+                move || {
+                    provide_context(pool.clone());
+                }
+            },
+            {
+                let state = state.clone();
+                move || shell(state.leptos_options.clone())
+            },
+        )
+        .fallback(leptos_axum::file_and_error_handler::<LeptosOptions, _>(
+            shell,
+        ))
+        .with_state(state);
 
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`

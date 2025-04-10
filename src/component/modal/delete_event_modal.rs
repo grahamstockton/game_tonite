@@ -77,8 +77,10 @@ pub fn DeleteEventModal(session_id: i64, owner_id: String) -> impl IntoView {
 #[server]
 pub async fn delete_event(session_id: i64) -> Result<(), ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
-    // TODO: test this, then use extractors to share an sqlite client across instances
-    let client = SqliteClient::new("sqlite://sessions.db").await;
+    use sqlx::{Pool, Sqlite};
+
+    let pool = use_context::<Pool<Sqlite>>().expect("pool not found");
+    let client = SqliteClient::from_pool(pool).await;
 
     match client.delete_session(session_id).await {
         Ok(()) => Ok(()),

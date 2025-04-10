@@ -54,6 +54,10 @@ impl SqliteClient {
         }
     }
 
+    pub async fn from_pool(pool: Pool<Sqlite>) -> Self {
+        Self { client: pool }
+    }
+
     // session table -- CREATE
     pub async fn create_session(
         &self,

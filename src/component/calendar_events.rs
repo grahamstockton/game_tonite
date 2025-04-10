@@ -83,8 +83,11 @@ async fn get_events(
     end_time: DateTime<FixedOffset>,
 ) -> Result<Vec<GamingSession>, ServerFnError> {
     use crate::dao::sqlite_util::SqliteClient;
-    // TODO: test this, then use extractors to share an sqlite client across instances
-    let client = SqliteClient::new("sqlite://sessions.db").await;
+    use sqlx::{Pool, Sqlite};
+
+    let pool = use_context::<Pool<Sqlite>>().expect("pool not found");
+    let client = SqliteClient::from_pool(pool).await;
+
     let sessions = client
         .get_sessions_in_range(&server_id, start_time.to_utc(), end_time.to_utc())
         .await
