@@ -7,32 +7,6 @@ async fn main() {
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
 
-    /*let client_id_str = std::env::var("CLIENT_ID").expect("couldn't find client id");
-    let secret_val = std::env::var("SECRET").expect("couldn't find secret");
-
-    // set up the http client
-    let reqwest = reqwest::Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .build().unwrap();
-
-    let igdb = IgdbClient::new(Arc::new(reqwest), client_id_str, secret_val).await;
-
-    igdb.get_games().await;*/
-
-    /*let client = SqliteClient::new(DB_URL).await;
-
-    let _ = client.create_session_user("graham", 1, "photo_url").await.expect("failed to create graham");
-    let _ = client.create_session_user("bob", 1, "photo_url2").await.expect("failed  to create bob");
-
-    let users = client
-        .get_session_users(1)
-        .await
-        .expect("failed to get users");
-    log!("initial users: {:?}", users);
-
-    let sessions = client.get_sessions("PLACEHOLDER").await.unwrap();
-    log!("initial sessions {:?}", sessions);*/
-
     // load sql client
     //let sql = SqliteClient::new(DB_URL);*/
     let conf = get_configuration(None).unwrap();
